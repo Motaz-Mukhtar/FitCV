@@ -1,0 +1,11 @@
+.env*
+
+.next
+
+.trae
+
+package-*
+
+./node_modules
+
+*.md
