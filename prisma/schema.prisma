@@ -22,21 +22,42 @@ model User {
 }
 
 model Profile {
-  id          String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  user_id     String          @db.Uuid
-  name        String          @db.VarChar(100)
-  title       String?         @db.VarChar(150)
-  summary     String?         @db.Text
-  is_default  Boolean         @default(false)
-  created_at  DateTime        @default(now()) @db.Timestamp(6)
-  updated_at  DateTime        @default(now()) @db.Timestamp(6)
-  deleted_at  DateTime?       @db.Timestamp(6)
-  user        User            @relation(fields: [user_id], references: [id])
-  experiences Experience[]
-  skills      Skill[]
-  submissions JobSubmission[]
+  id            String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  user_id       String          @db.Uuid
+  full_name     String?          @db.VarChar(150)
+  title         String?         @db.VarChar(150)
+  summary       String?         @db.Text
+  email         String?          @db.VarChar(255)
+  phone         String?         @db.VarChar(20)
+  location      String?         @db.VarChar(150)
+  linkedin_url  String?         @db.VarChar(255)
+  portfolio_url String?         @db.VarChar(255)
+  is_default    Boolean         @default(false)
+  created_at    DateTime        @default(now()) @db.Timestamp(6)
+  updated_at    DateTime        @default(now()) @db.Timestamp(6)
+  deleted_at    DateTime?       @db.Timestamp(6)
+  user          User            @relation(fields: [user_id], references: [id])
+  experiences   Experience[]
+  skills        Skill[]
+  education     Education[]
+  submissions   JobSubmission[]
 
   @@map("profiles")
+}
+
+model Education {
+  id          String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  profile_id  String    @db.Uuid
+  institution String    @db.VarChar(150)
+  degree      String    @db.VarChar(150)
+  field       String    @db.VarChar(150)
+  start_date  DateTime  @db.Date
+  end_date    DateTime? @db.Date
+  created_at  DateTime  @default(now()) @db.Timestamp(6)
+  deleted_at  DateTime? @db.Timestamp(6)
+  profile     Profile   @relation(fields: [profile_id], references: [id])
+
+  @@map("education")
 }
 
 model Experience {

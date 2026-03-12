@@ -95,7 +95,7 @@ export default function GeneratePage() {
                   >
                     {profiles.map(p => (
                       <option key={p.id} value={p.id} className="bg-deep-navy text-white">
-                        {p.name} {p.is_default ? '(Default)' : ''}
+                        {p.full_name} {p.is_default ? '(Default)' : ''}
                       </option>
                     ))}
                   </select>

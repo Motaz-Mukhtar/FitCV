@@ -8,12 +8,26 @@ import { useStore } from '@/store/useStore'
 import Link from 'next/link'
 
 export default function DashboardPage() {
-  const { profiles, submissions, fetchProfiles, fetchSubmissions } = useStore()
+  const { profiles, submissions, pagination, stats, fetchProfiles, fetchSubmissions } = useStore()
 
   useEffect(() => {
     fetchProfiles()
-    // fetchSubmissions() // We'll implement this endpoint later
+    fetchSubmissions(1, 5)
   }, [fetchProfiles, fetchSubmissions])
+
+  console.log(submissions)
+  const handlePageChange = (newPage) => {
+    fetchSubmissions(newPage, pagination.limit)
+  }
+
+  const getDocIcon = (type) => {
+    switch (type) {
+      case 'cv': return '📄';
+      case 'cover_letter': return '✉️';
+      case 'summary': return '📝';
+      default: return '📄';
+    }
+  }
 
   return (
     <div className="min-h-screen bg-ice-blue/30 flex flex-col">
@@ -36,8 +50,8 @@ export default function DashboardPage() {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-12">
           {[
             { label: 'Total Profiles', value: profiles.length, color: 'bg-white' },
-            { label: 'Total Tailored CVs', value: submissions.length, color: 'bg-white' },
-            { label: 'Cover Letters', value: 0, color: 'bg-white' },
+            { label: 'Tailored CVs', value: stats.cv, color: 'bg-white' },
+            { label: 'Cover Letters', value: stats.cover_letter, color: 'bg-white' },
             { label: 'Success Rate', value: '75%', color: 'bg-white' },
           ].map((stat, i) => (
             <div key={i} className={`${stat.color} p-8 rounded-2xl shadow-sm border border-powder-blue transition-all hover:shadow-md`}>
@@ -65,27 +79,78 @@ export default function DashboardPage() {
                 </Link>
               </div>
             ) : (
-              <div className="space-y-4">
-                {submissions.map((sub) => (
-                  <Card key={sub.id} className="p-4 hover:border-sapphire transition-colors group">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center space-x-4">
-                        <div className="w-12 h-12 bg-ice-blue rounded-xl flex items-center justify-center text-xl">📄</div>
-                        <div>
-                          <h4 className="text-lg font-bold text-deep-navy group-hover:text-sapphire transition-colors">{sub.job_title || 'Untitled Role'}</h4>
-                          <p className="text-sm text-sapphire font-medium">{sub.company_name || 'Various Companies'}</p>
+              <>
+                <div className="space-y-4">
+                  {submissions.map((sub) => (
+                    <Card key={sub.id} className="p-6 hover:border-sapphire transition-colors group">
+                      <div className="flex flex-col space-y-4">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center space-x-4">
+                            <div className="w-12 h-12 bg-ice-blue rounded-xl flex items-center justify-center text-xl">💼</div>
+                            <div>
+                              <h4 className="text-lg font-bold text-deep-navy group-hover:text-sapphire transition-colors">{sub.job_title || 'Untitled Role'}</h4>
+                              <p className="text-sm text-sapphire font-medium">{sub.company_name || 'Various Companies'}</p>
+                            </div>
+                          </div>
+                          <div className="flex items-center space-x-4">
+                            <span className="text-xs font-bold text-sapphire/40 px-3 py-1 bg-ice-blue/30 rounded-full">{new Date(sub.created_at).toLocaleDateString()}</span>
+                            <Link href={`/generate/${sub?.documents[0]?.id}`}>
+                              <Button size="sm" variant="ghost">View Details</Button>
+                            </Link>
+                          </div>
+                        </div>
+                        
+                        {/* Generated Documents for this submission */}
+                        <div className="flex flex-wrap gap-2 pt-2 border-t border-ice-blue">
+                          {sub.documents?.map((doc) => (
+                            <Link key={doc.id} href={`/generate/${sub.id}?type=${doc.type}`}>
+                              <div className="flex items-center space-x-2 px-3 py-1.5 bg-ice-blue/50 hover:bg-ice-blue rounded-lg transition-colors cursor-pointer border border-powder-blue/30">
+                                <span className="text-sm">{getDocIcon(doc.type)}</span>
+                                <span className="text-xs font-bold text-deep-navy capitalize">{doc.type.replace('_', ' ')}</span>
+                              </div>
+                            </Link>
+                          ))}
                         </div>
                       </div>
-                      <div className="flex items-center space-x-4">
-                        <span className="text-xs font-bold text-sapphire/40 px-3 py-1 bg-ice-blue/30 rounded-full">{new Date(sub.created_at).toLocaleDateString()}</span>
-                        <Link href={`/generate/${sub.id}`}>
-                          <Button size="sm" variant="ghost">View Details</Button>
-                        </Link>
-                      </div>
+                    </Card>
+                  ))}
+                </div>
+
+                {/* Pagination Controls */}
+                {pagination.totalPages > 1 && (
+                  <div className="flex items-center justify-center space-x-2 mt-8">
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      disabled={pagination.page === 1}
+                      onClick={() => handlePageChange(pagination.page - 1)}
+                    >
+                      Previous
+                    </Button>
+                    <div className="flex items-center space-x-1">
+                      {[...Array(pagination.totalPages)].map((_, i) => (
+                        <Button
+                          key={i}
+                          variant={pagination.page === i + 1 ? 'default' : 'ghost'}
+                          size="sm"
+                          className="w-8 h-8 p-0"
+                          onClick={() => handlePageChange(i + 1)}
+                        >
+                          {i + 1}
+                        </Button>
+                      ))}
                     </div>
-                  </Card>
-                ))}
-              </div>
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      disabled={pagination.page === pagination.totalPages}
+                      onClick={() => handlePageChange(pagination.page + 1)}
+                    >
+                      Next
+                    </Button>
+                  </div>
+                )}
+              </>
             )}
           </div>
 

@@ -21,6 +21,7 @@ export async function POST(req) {
       include: {
         experiences: { where: { deleted_at: null } },
         skills: true,
+        education: { where: { deleted_at: null } },
       },
     });
 

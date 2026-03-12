@@ -16,8 +16,22 @@ export default function ProfileDetailPage() {
   const [profile, setProfile] = useState(null)
   const [isAddingExp, setIsAddingExp] = useState(false)
   const [isAddingSkill, setIsAddingSkill] = useState(false)
+  const [isAddingEdu, setIsAddingEdu] = useState(false)
+  const [isEditingBase, setIsEditingBase] = useState(false)
+  
   const [newExp, setNewExp] = useState({ role: '', company: '', start_date: '', end_date: '', description: '' })
   const [newSkill, setNewSkill] = useState({ name: '', type: 'hard' })
+  const [newEdu, setNewEdu] = useState({ institution: '', degree: '', field: '', start_date: '', end_date: '' })
+  const [editProfile, setEditProfile] = useState({ 
+    full_name: '', 
+    title: '', 
+    summary: '',
+    email: '',
+    phone: '',
+    location: '',
+    linkedin_url: '',
+    portfolio_url: ''
+  })
 
   useEffect(() => {
     fetchProfiles()
@@ -26,9 +40,56 @@ export default function ProfileDetailPage() {
   useEffect(() => {
     if (profiles.length > 0) {
       const p = profiles.find(p => p.id === id)
-      if (p) setProfile(p)
+      if (p) {
+        setProfile(p)
+        setEditProfile({
+          full_name: p.full_name || '',
+          title: p.title || '',
+          summary: p.summary || '',
+          email: p.email || '',
+          phone: p.phone || '',
+          location: p.location || '',
+          linkedin_url: p.linkedin_url || '',
+          portfolio_url: p.portfolio_url || ''
+        })
+      }
     }
   }, [profiles, id])
+
+  const handleUpdateProfile = async (e) => {
+    e.preventDefault()
+    try {
+      const res = await fetch(`/api/v1/profiles/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(editProfile)
+      })
+      if (res.ok) {
+        fetchProfiles()
+        setIsEditingBase(false)
+      }
+    } catch (error) {
+      console.error("Update profile error:", error)
+    }
+  }
+
+  const handleAddEducation = async (e) => {
+    e.preventDefault()
+    try {
+      const res = await fetch(`/api/v1/profiles/${id}/education`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(newEdu)
+      })
+      if (res.ok) {
+        fetchProfiles()
+        setIsAddingEdu(false)
+        setNewEdu({ institution: '', degree: '', field: '', start_date: '', end_date: '' })
+      }
+    } catch (error) {
+      console.error("Add education error:", error)
+    }
+  }
 
   const handleAddExperience = async (e) => {
     e.preventDefault()
@@ -76,16 +137,84 @@ export default function ProfileDetailPage() {
         <div className="mb-12 flex items-center justify-between">
           <div>
             <Link href="/profiles" className="text-sapphire hover:underline font-black uppercase text-xs tracking-widest mb-4 inline-block">← Back to Profiles</Link>
-            <h1 className="text-4xl font-black text-deep-navy tracking-tight">{profile.name}</h1>
+            <h1 className="text-4xl font-black text-deep-navy tracking-tight">{profile.full_name}</h1>
             <p className="text-xl text-sapphire font-medium mt-2">{profile.title}</p>
+            <div className="flex items-center space-x-4 mt-4 text-sm font-medium text-sapphire/70">
+              {profile.email && <span>📧 {profile.email}</span>}
+              {profile.phone && <span>📞 {profile.phone}</span>}
+              {profile.location && <span>📍 {profile.location}</span>}
+            </div>
           </div>
           <div className="flex space-x-4">
-             <Button variant="outline" className="rounded-xl border-2 font-bold px-8">Edit Base Info</Button>
+             <Button variant="outline" className="rounded-xl border-2 font-bold px-8" onClick={() => setIsEditingBase(true)}>Edit Base Info</Button>
              <Link href="/generate">
                <Button className="rounded-xl px-8 shadow-lg shadow-sapphire/20">Generate CV</Button>
              </Link>
           </div>
         </div>
+
+        {/* Edit Base Info Modal */}
+        {isEditingBase && (
+          <div className="fixed inset-0 bg-deep-navy/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
+            <div className="bg-white rounded-3xl w-full max-w-2xl shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-200">
+              <div className="p-8 border-b border-ice-blue">
+                <h2 className="text-2xl font-black text-deep-navy tracking-tight">Edit Base Info</h2>
+              </div>
+              <form onSubmit={handleUpdateProfile} className="p-8 space-y-4 max-h-[70vh] overflow-y-auto">
+                <div className="grid md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-[10px] font-black text-deep-navy uppercase tracking-widest mb-2">Full Name</label>
+                    <input required type="text" className="w-full px-4 py-2.5 rounded-xl border border-powder-blue outline-none" 
+                      value={editProfile.full_name} onChange={(e) => setEditProfile({...editProfile, full_name: e.target.value})} />
+                  </div>
+                  <div>
+                    <label className="block text-[10px] font-black text-deep-navy uppercase tracking-widest mb-2">Professional Title</label>
+                    <input type="text" className="w-full px-4 py-2.5 rounded-xl border border-powder-blue outline-none" 
+                      value={editProfile.title} onChange={(e) => setEditProfile({...editProfile, title: e.target.value})} />
+                  </div>
+                </div>
+                <div className="grid md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-[10px] font-black text-deep-navy uppercase tracking-widest mb-2">Email</label>
+                    <input required type="email" className="w-full px-4 py-2.5 rounded-xl border border-powder-blue outline-none" 
+                      value={editProfile.email} onChange={(e) => setEditProfile({...editProfile, email: e.target.value})} />
+                  </div>
+                  <div>
+                    <label className="block text-[10px] font-black text-deep-navy uppercase tracking-widest mb-2">Phone</label>
+                    <input type="text" className="w-full px-4 py-2.5 rounded-xl border border-powder-blue outline-none" 
+                      value={editProfile.phone} onChange={(e) => setEditProfile({...editProfile, phone: e.target.value})} />
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-[10px] font-black text-deep-navy uppercase tracking-widest mb-2">Location</label>
+                  <input type="text" className="w-full px-4 py-2.5 rounded-xl border border-powder-blue outline-none" 
+                    value={editProfile.location} onChange={(e) => setEditProfile({...editProfile, location: e.target.value})} />
+                </div>
+                <div className="grid md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-[10px] font-black text-deep-navy uppercase tracking-widest mb-2">LinkedIn URL</label>
+                    <input type="url" className="w-full px-4 py-2.5 rounded-xl border border-powder-blue outline-none" 
+                      value={editProfile.linkedin_url} onChange={(e) => setEditProfile({...editProfile, linkedin_url: e.target.value})} />
+                  </div>
+                  <div>
+                    <label className="block text-[10px] font-black text-deep-navy uppercase tracking-widest mb-2">Portfolio URL</label>
+                    <input type="url" className="w-full px-4 py-2.5 rounded-xl border border-powder-blue outline-none" 
+                      value={editProfile.portfolio_url} onChange={(e) => setEditProfile({...editProfile, portfolio_url: e.target.value})} />
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-[10px] font-black text-deep-navy uppercase tracking-widest mb-2">Summary</label>
+                  <textarea rows="4" className="w-full px-4 py-2.5 rounded-xl border border-powder-blue outline-none resize-none" 
+                    value={editProfile.summary} onChange={(e) => setEditProfile({...editProfile, summary: e.target.value})} />
+                </div>
+                <div className="flex justify-end space-x-3 pt-4 border-t border-ice-blue">
+                  <Button type="button" variant="ghost" onClick={() => setIsEditingBase(false)}>Cancel</Button>
+                  <Button type="submit">Update Base Info</Button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
 
         <div className="grid lg:grid-cols-3 gap-12">
           {/* Main Column: Experiences */}
@@ -157,6 +286,78 @@ export default function ProfileDetailPage() {
                           {exp.description && (
                             <p className="mt-6 text-deep-navy/80 leading-relaxed font-medium whitespace-pre-line">{exp.description}</p>
                           )}
+                        </div>
+                      </div>
+                    </Card>
+                  ))
+                )}
+              </div>
+            </section>
+
+            <section>
+              <div className="flex items-center justify-between mb-8">
+                <h2 className="text-2xl font-black text-deep-navy tracking-tight flex items-center">
+                   <span className="mr-3 text-3xl">🎓</span>
+                   Education
+                </h2>
+                <Button onClick={() => setIsAddingEdu(true)} size="sm" variant="secondary" className="rounded-lg font-bold">
+                   + Add Education
+                </Button>
+              </div>
+
+              {isAddingEdu && (
+                <Card className="mb-8 border-2 border-sapphire/30 animate-in slide-in-from-top-4 duration-300">
+                  <form onSubmit={handleAddEducation} className="space-y-6">
+                    <div className="grid md:grid-cols-2 gap-6">
+                      <div>
+                        <label className="block text-[10px] font-black text-sapphire/40 uppercase tracking-widest mb-2">Institution</label>
+                        <input required type="text" className="w-full px-4 py-2 rounded-lg border border-powder-blue outline-none focus:ring-2 focus:ring-sapphire" 
+                          value={newEdu.institution} onChange={(e) => setNewEdu({...newEdu, institution: e.target.value})} />
+                      </div>
+                      <div>
+                        <label className="block text-[10px] font-black text-sapphire/40 uppercase tracking-widest mb-2">Degree</label>
+                        <input required type="text" className="w-full px-4 py-2 rounded-lg border border-powder-blue outline-none focus:ring-2 focus:ring-sapphire" 
+                          value={newEdu.degree} onChange={(e) => setNewEdu({...newEdu, degree: e.target.value})} />
+                      </div>
+                    </div>
+                    <div className="grid md:grid-cols-3 gap-6">
+                      <div>
+                        <label className="block text-[10px] font-black text-sapphire/40 uppercase tracking-widest mb-2">Field of Study</label>
+                        <input required type="text" className="w-full px-4 py-2 rounded-lg border border-powder-blue outline-none focus:ring-2 focus:ring-sapphire" 
+                          value={newEdu.field} onChange={(e) => setNewEdu({...newEdu, field: e.target.value})} />
+                      </div>
+                      <div>
+                        <label className="block text-[10px] font-black text-sapphire/40 uppercase tracking-widest mb-2">Start Date</label>
+                        <input required type="date" className="w-full px-4 py-2 rounded-lg border border-powder-blue outline-none focus:ring-2 focus:ring-sapphire" 
+                          value={newEdu.start_date} onChange={(e) => setNewEdu({...newEdu, start_date: e.target.value})} />
+                      </div>
+                      <div>
+                        <label className="block text-[10px] font-black text-sapphire/40 uppercase tracking-widest mb-2">End Date (Optional)</label>
+                        <input type="date" className="w-full px-4 py-2 rounded-lg border border-powder-blue outline-none focus:ring-2 focus:ring-sapphire" 
+                          value={newEdu.end_date} onChange={(e) => setNewEdu({...newEdu, end_date: e.target.value})} />
+                      </div>
+                    </div>
+                    <div className="flex justify-end space-x-3">
+                      <Button type="button" variant="ghost" onClick={() => setIsAddingEdu(false)}>Cancel</Button>
+                      <Button type="submit">Save Education</Button>
+                    </div>
+                  </form>
+                </Card>
+              )}
+
+              <div className="space-y-6">
+                {profile.education?.length === 0 ? (
+                  <p className="text-sapphire/60 italic p-12 text-center bg-white/40 rounded-2xl border-2 border-dashed border-powder-blue font-medium">No education added yet.</p>
+                ) : (
+                  profile.education?.map((edu) => (
+                    <Card key={edu.id} className="p-8 hover:border-sapphire transition-colors group">
+                      <div className="flex justify-between items-start">
+                        <div>
+                          <h3 className="text-xl font-black text-deep-navy tracking-tight group-hover:text-sapphire transition-colors">{edu.degree} in {edu.field}</h3>
+                          <p className="text-sapphire font-bold mt-1 uppercase tracking-wider text-xs">{edu.institution}</p>
+                          <p className="text-xs text-sapphire/40 font-black mt-2 uppercase tracking-widest">
+                            {new Date(edu.start_date).toLocaleDateString()} — {edu.end_date ? new Date(edu.end_date).toLocaleDateString() : 'Present'}
+                          </p>
                         </div>
                       </div>
                     </Card>

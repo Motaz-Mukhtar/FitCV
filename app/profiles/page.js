@@ -10,7 +10,16 @@ import Link from 'next/link'
 export default function ProfilesPage() {
   const { profiles, fetchProfiles, deleteProfile } = useStore()
   const [isModalOpen, setIsModalOpen] = useState(false)
-  const [newProfile, setNewProfile] = useState({ name: '', title: '', summary: '' })
+  const [newProfile, setNewProfile] = useState({ 
+    full_name: '', 
+    title: '', 
+    summary: '',
+    email: '',
+    phone: '',
+    location: '',
+    linkedin_url: '',
+    portfolio_url: ''
+  })
   const [isSubmitting, setIsSubmitting] = useState(false)
 
   useEffect(() => {
@@ -29,7 +38,16 @@ export default function ProfilesPage() {
       if (res.ok) {
         fetchProfiles()
         setIsModalOpen(false)
-        setNewProfile({ name: '', title: '', summary: '' })
+        setNewProfile({ 
+          full_name: '', 
+          title: '', 
+          summary: '',
+          email: '',
+          phone: '',
+          location: '',
+          linkedin_url: '',
+          portfolio_url: ''
+        })
       }
     } catch (error) {
       console.error("Create profile error:", error)
@@ -76,7 +94,7 @@ export default function ProfilesPage() {
             {profiles.map((profile) => (
               <Card 
                 key={profile.id}
-                title={profile.name}
+                title={profile.full_name}
                 subtitle={profile.title || "No title set"}
                 className="hover:shadow-xl hover:-translate-y-1 transition-all duration-300"
                 headerAction={
@@ -94,14 +112,17 @@ export default function ProfilesPage() {
                 <p className="text-sm text-deep-navy/70 line-clamp-3 italic">
                   {profile.summary || "No summary provided. Add one to help the AI tailor your CV better."}
                 </p>
-                <div className="mt-6 flex items-center space-x-4">
+                <div className="mt-6 grid grid-cols-3 gap-4 border-t border-ice-blue pt-4">
                   <div className="flex flex-col">
-                    <span className="text-xs font-black text-sapphire/40 uppercase tracking-widest">Experiences</span>
+                    <span className="text-[10px] font-black text-sapphire/40 uppercase tracking-widest">Experiences</span>
                     <span className="text-lg font-bold text-deep-navy">{profile.experiences?.length || 0}</span>
                   </div>
-                  <div className="w-px h-8 bg-ice-blue"></div>
-                  <div className="flex flex-col">
-                    <span className="text-xs font-black text-sapphire/40 uppercase tracking-widest">Skills</span>
+                  <div className="flex flex-col border-l border-ice-blue pl-4">
+                    <span className="text-[10px] font-black text-sapphire/40 uppercase tracking-widest">Education</span>
+                    <span className="text-lg font-bold text-deep-navy">{profile.education?.length || 0}</span>
+                  </div>
+                  <div className="flex flex-col border-l border-ice-blue pl-4">
+                    <span className="text-[10px] font-black text-sapphire/40 uppercase tracking-widest">Skills</span>
                     <span className="text-lg font-bold text-deep-navy">{profile.skills?.length || 0}</span>
                   </div>
                 </div>
@@ -120,54 +141,115 @@ export default function ProfilesPage() {
               <p className="text-sapphire mt-1 font-medium">Set the foundation for your tailored CV</p>
             </div>
             
-            <form onSubmit={handleCreateProfile} className="p-8 space-y-6">
+            <form onSubmit={handleCreateProfile} className="p-8 space-y-4 max-h-[70vh] overflow-y-auto">
+              <div className="grid md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-[10px] font-black text-deep-navy uppercase tracking-widest mb-2">Full Name</label>
+                  <input 
+                    required
+                    type="text" 
+                    placeholder="e.g. John Doe"
+                    className="w-full px-4 py-2.5 rounded-xl border border-powder-blue focus:ring-2 focus:ring-sapphire focus:border-transparent outline-none transition-all text-sm"
+                    value={newProfile.full_name}
+                    onChange={(e) => setNewProfile({ ...newProfile, full_name: e.target.value })}
+                  />
+                </div>
+                <div>
+                  <label className="block text-[10px] font-black text-deep-navy uppercase tracking-widest mb-2">Professional Title</label>
+                  <input 
+                    type="text" 
+                    placeholder="e.g. Senior React Developer"
+                    className="w-full px-4 py-2.5 rounded-xl border border-powder-blue focus:ring-2 focus:ring-sapphire focus:border-transparent outline-none transition-all text-sm"
+                    value={newProfile.title}
+                    onChange={(e) => setNewProfile({ ...newProfile, title: e.target.value })}
+                  />
+                </div>
+              </div>
+
+              <div className="grid md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-[10px] font-black text-deep-navy uppercase tracking-widest mb-2">Email</label>
+                  <input 
+                    required
+                    type="email" 
+                    placeholder="john@example.com"
+                    className="w-full px-4 py-2.5 rounded-xl border border-powder-blue focus:ring-2 focus:ring-sapphire focus:border-transparent outline-none transition-all text-sm"
+                    value={newProfile.email}
+                    onChange={(e) => setNewProfile({ ...newProfile, email: e.target.value })}
+                  />
+                </div>
+                <div>
+                  <label className="block text-[10px] font-black text-deep-navy uppercase tracking-widest mb-2">Phone</label>
+                  <input 
+                    type="tel" 
+                    placeholder="+1 234 567 890"
+                    className="w-full px-4 py-2.5 rounded-xl border border-powder-blue focus:ring-2 focus:ring-sapphire focus:border-transparent outline-none transition-all text-sm"
+                    value={newProfile.phone}
+                    onChange={(e) => setNewProfile({ ...newProfile, phone: e.target.value })}
+                  />
+                </div>
+              </div>
+
               <div>
-                <label className="block text-sm font-black text-deep-navy uppercase tracking-widest mb-2">Profile Name</label>
+                <label className="block text-[10px] font-black text-deep-navy uppercase tracking-widest mb-2">Location</label>
                 <input 
-                  required
                   type="text" 
-                  placeholder="e.g. Frontend Engineer"
-                  className="w-full px-4 py-3 rounded-xl border border-powder-blue focus:ring-2 focus:ring-sapphire focus:border-transparent outline-none transition-all"
-                  value={newProfile.name}
-                  onChange={(e) => setNewProfile({ ...newProfile, name: e.target.value })}
+                  placeholder="e.g. Cairo, Egypt"
+                  className="w-full px-4 py-2.5 rounded-xl border border-powder-blue focus:ring-2 focus:ring-sapphire focus:border-transparent outline-none transition-all text-sm"
+                  value={newProfile.location}
+                  onChange={(e) => setNewProfile({ ...newProfile, location: e.target.value })}
                 />
               </div>
-              <div>
-                <label className="block text-sm font-black text-deep-navy uppercase tracking-widest mb-2">Professional Title</label>
-                <input 
-                  type="text" 
-                  placeholder="e.g. Senior React Developer"
-                  className="w-full px-4 py-3 rounded-xl border border-powder-blue focus:ring-2 focus:ring-sapphire focus:border-transparent outline-none transition-all"
-                  value={newProfile.title}
-                  onChange={(e) => setNewProfile({ ...newProfile, title: e.target.value })}
-                />
+
+              <div className="grid md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-[10px] font-black text-deep-navy uppercase tracking-widest mb-2">LinkedIn URL</label>
+                  <input 
+                    type="url" 
+                    placeholder="https://linkedin.com/in/..."
+                    className="w-full px-4 py-2.5 rounded-xl border border-powder-blue focus:ring-2 focus:ring-sapphire focus:border-transparent outline-none transition-all text-sm"
+                    value={newProfile.linkedin_url}
+                    onChange={(e) => setNewProfile({ ...newProfile, linkedin_url: e.target.value })}
+                  />
+                </div>
+                <div>
+                  <label className="block text-[10px] font-black text-deep-navy uppercase tracking-widest mb-2">Portfolio URL</label>
+                  <input 
+                    type="url" 
+                    placeholder="https://yourportfolio.com"
+                    className="w-full px-4 py-2.5 rounded-xl border border-powder-blue focus:ring-2 focus:ring-sapphire focus:border-transparent outline-none transition-all text-sm"
+                    value={newProfile.portfolio_url}
+                    onChange={(e) => setNewProfile({ ...newProfile, portfolio_url: e.target.value })}
+                  />
+                </div>
               </div>
+
               <div>
-                <label className="block text-sm font-black text-deep-navy uppercase tracking-widest mb-2">Base Summary</label>
+                <label className="block text-[10px] font-black text-deep-navy uppercase tracking-widest mb-2">Base Summary</label>
                 <textarea 
-                  rows="4"
+                  rows="3"
                   placeholder="A brief overview of your career..."
-                  className="w-full px-4 py-3 rounded-xl border border-powder-blue focus:ring-2 focus:ring-sapphire focus:border-transparent outline-none transition-all resize-none"
+                  className="w-full px-4 py-2.5 rounded-xl border border-powder-blue focus:ring-2 focus:ring-sapphire focus:border-transparent outline-none transition-all resize-none text-sm"
                   value={newProfile.summary}
                   onChange={(e) => setNewProfile({ ...newProfile, summary: e.target.value })}
-                />
+                ></textarea>
               </div>
-              
-              <div className="flex space-x-4 pt-4">
+
+              <div className="flex items-center space-x-3 pt-4 border-t border-ice-blue">
                 <Button 
                   type="button" 
-                  variant="secondary" 
-                  className="flex-1 rounded-xl py-3" 
+                  variant="outline" 
+                  className="flex-1 rounded-xl"
                   onClick={() => setIsModalOpen(false)}
                 >
                   Cancel
                 </Button>
                 <Button 
                   type="submit" 
-                  className="flex-1 rounded-xl py-3 shadow-lg shadow-sapphire/20"
-                  isLoading={isSubmitting}
+                  className="flex-1 rounded-xl shadow-lg shadow-sapphire/20"
+                  disabled={isSubmitting}
                 >
-                  Create Profile
+                  {isSubmitting ? 'Creating...' : 'Create Profile'}
                 </Button>
               </div>
             </form>

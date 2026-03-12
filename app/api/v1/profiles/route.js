@@ -14,6 +14,7 @@ export async function GET(req) {
       include: {
         experiences: { where: { deleted_at: null } },
         skills: true,
+        education: { where: { deleted_at: null } },
       },
     });
 
@@ -31,10 +32,14 @@ export async function POST(req) {
 
   try {
     const data = await req.json();
-    const { name, title, summary, is_default } = data;
+    const { full_name, title, summary, email, phone, location, linkedin_url, portfolio_url, is_default } = data;
 
-    if (!name) {
+    if (!full_name) {
       return NextResponse.json({ error: "Profile name is required" }, { status: 400 });
+    }
+    
+    if (!email) {
+      return NextResponse.json({ error: "Email is required" }, { status: 400 });
     }
 
     // If setting as default, unset previous default
@@ -44,13 +49,18 @@ export async function POST(req) {
         data: { is_default: false },
       });
     }
-    console.log(user);
+
     const profile = await prisma.profile.create({
       data: {
         user_id: user.id,
-        name,
+        full_name,
         title,
         summary,
+        email,
+        phone,
+        location,
+        linkedin_url,
+        portfolio_url,
         is_default: !!is_default,
       },
     });

@@ -13,6 +13,7 @@ export async function GET(req, { params }) {
       include: {
         experiences: { where: { deleted_at: null } },
         skills: true,
+        education: { where: { deleted_at: null } },
       },
     });
 
@@ -34,7 +35,7 @@ export async function PUT(req, { params }) {
 
   try {
     const data = await req.json();
-    const { name, title, summary, is_default } = data;
+    const { full_name, title, summary, email, phone, location, linkedin_url, portfolio_url, is_default } = data;
 
     // Verify ownership
     const existing = await prisma.profile.findFirst({
@@ -56,9 +57,14 @@ export async function PUT(req, { params }) {
     const updated = await prisma.profile.update({
       where: { id: params.id },
       data: {
-        name: name !== undefined ? name : existing.name,
+        full_name: full_name !== undefined ? full_name : existing.full_name,
         title: title !== undefined ? title : existing.title,
         summary: summary !== undefined ? summary : existing.summary,
+        email: email !== undefined ? email : existing.email,
+        phone: phone !== undefined ? phone : existing.phone,
+        location: location !== undefined ? location : existing.location,
+        linkedin_url: linkedin_url !== undefined ? linkedin_url : existing.linkedin_url,
+        portfolio_url: portfolio_url !== undefined ? portfolio_url : existing.portfolio_url,
         is_default: is_default !== undefined ? !!is_default : existing.is_default,
         updated_at: new Date(),
       },

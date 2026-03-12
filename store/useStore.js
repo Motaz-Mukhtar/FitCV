@@ -30,9 +30,31 @@ export const useStore = create((set, get) => ({
     )
   })),
 
+  // Education
+  addEducation: (profileId, education) => set((state) => ({
+    profiles: state.profiles.map(p => 
+      p.id === profileId 
+        ? { ...p, education: [education, ...(p.education || [])] } 
+        : p
+    )
+  })),
+
   // Submissions & Generations
   submissions: [],
+  pagination: {
+    total: 0,
+    page: 1,
+    limit: 10,
+    totalPages: 0,
+  },
+  stats: {
+    cv: 0,
+    cover_letter: 0,
+    summary: 0,
+  },
   setSubmissions: (submissions) => set({ submissions }),
+  setPagination: (pagination) => set({ pagination }),
+  setStats: (stats) => set({ stats }),
   addSubmission: (submission) => set((state) => ({
     submissions: [submission, ...state.submissions]
   })),
@@ -44,14 +66,14 @@ export const useStore = create((set, get) => ({
   // Auth
   user: null,
   setUser: (user) => set({ user }),
-  logout: () => set({ user: null, profiles: [], submissions: [] }),
+  logout: () => set({ user: null, profiles: [], submissions: [], pagination: { total: 0, page: 1, limit: 10, totalPages: 0 }, stats: { cv: 0, cover_letter: 0, summary: 0 } }),
 
   // Actions
   fetchProfiles: async () => {
     try {
       const res = await fetch('/api/v1/profiles');
       if (res.ok) {
-        const data = await res.ok ? await res.json() : [];
+        const data = await res.json();
         set({ profiles: data });
       }
     } catch (error) {
@@ -59,13 +81,16 @@ export const useStore = create((set, get) => ({
     }
   },
 
-  fetchSubmissions: async () => {
+  fetchSubmissions: async (page = 1, limit = 10) => {
     try {
-      // Endpoint to be implemented
-      const res = await fetch('/api/v1/submissions');
+      const res = await fetch(`/api/v1/submissions?page=${page}&limit=${limit}`);
       if (res.ok) {
         const data = await res.json();
-        set({ submissions: data });
+        set({ 
+          submissions: data.submissions,
+          pagination: data.pagination,
+          stats: data.stats
+        });
       }
     } catch (error) {
       console.error("Fetch submissions error:", error);
