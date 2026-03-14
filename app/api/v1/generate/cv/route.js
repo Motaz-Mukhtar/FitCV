@@ -40,8 +40,10 @@ export async function POST(req) {
       },
     });
 
+    console.log(profile, job_description);
     // 3. Generate the CV content using Gemini
     const prompt = buildCVPrompt(profile, job_description);
+    console.log(prompt)
     const aiContent = await GenerateService.generate(prompt);
 
     // 4. Save the generated document

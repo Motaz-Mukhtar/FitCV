@@ -7,10 +7,14 @@ cover letter (approx. 300 words) for the candidate, specifically addressing the 
 description provided.
 
 CANDIDATE DATA:
+Base Info:
+  - Full Name: ${profile.full_name}
 Current Title: ${profile.title}
 Base Summary: ${profile.summary}
 Experiences: ${profile.experiences?.map(e => `${e.role} at ${e.company}`).join(', ') || 'None'}
 Skills: ${profile.skills?.map(s => s.name).join(', ') || 'None'}
+Education: ${profile.education?.map(e => `${e.degree} in ${e.field} from ${e.institution} ${e.start_date} - ${e.end_date || 'Present'} `).join(', ') || 'None'}
+
 
 JOB DESCRIPTION:
 ${jobDescription}

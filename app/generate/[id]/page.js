@@ -82,7 +82,8 @@ export default function CVPreviewPage() {
 
   const cvData = document.content
   const profile = document.submission.profile
-
+console.log(profile);
+console.log(cvData);
   return (
     <div className="min-h-screen bg-ice-blue/30 flex flex-col">
       <Navbar />

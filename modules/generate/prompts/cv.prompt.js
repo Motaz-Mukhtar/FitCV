@@ -4,11 +4,11 @@ You are a professional CV writer. Your task is to tailor the candidate's CV
 to best match the job description provided.
 
 CANDIDATE PROFILE:
-Full Name: ${profile.fullName}
+Full Name: ${profile.full_name}
 Email: ${profile.email}
 Phone: ${profile.phone ?? 'not provided'}
 Location: ${profile.location ?? 'not provided'}
-LinkedIn: ${profile.linkedinUrl ?? 'not provided'}
+LinkedIn: ${profile.linkedin_url ?? 'not provided'}
 Professional Title: ${profile.title}
 Base Summary: ${profile.summary}
 
@@ -16,13 +16,13 @@ EDUCATION:
 ${profile.education.map(e => `
   - ${e.degree} in ${e.field}
     ${e.institution}
-    ${e.startDate} - ${e.endDate ?? 'Present'}
+    ${e.start_date} - ${e.end_date ?? 'Present'}
 `).join('\n')}
 
 EXPERIENCES:
 ${profile.experiences.map(e => `
   - ${e.role} at ${e.company}
-    Start: ${e.startDate} | End: ${e.endDate ?? 'Present'}
+    Start: ${e.start_date} | End: ${e.end_date ?? 'Present'}
     ${e.description}
 `).join('\n')}
 
@@ -40,7 +40,8 @@ STRICT INSTRUCTIONS:
 - Dates MUST follow this format: "Month YYYY" (e.g. "January 2025", "August 2024")
 - Always include the education section even if not required by the job
 - Return ONLY valid JSON, no markdown, no explanation, no backticks:
-
+- Don't address any additional information about the candidate that is not provided in the profile data, only use what is given.
+- Identify the Must-Haves vs. Nice-to-Haves Look for words like “required,” “must have,” or qualifications listed early on. These are top priorities.
 {
   "contactInfo": {
     "fullName": "string",

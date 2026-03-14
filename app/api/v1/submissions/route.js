@@ -22,7 +22,7 @@ export async function GET(req) {
           documents: true,
           profile: {
             select: {
-              name: true,
+              full_name: true,
             },
           },
         },
