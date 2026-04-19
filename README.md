@@ -71,20 +71,130 @@ Build your professional foundation once, use it everywhere:
 
 ---
 
+## App Architecture
+
+FitCV is built with a distributed architecture designed for scalability and performance. The system separates the web application from AI processing to ensure optimal resource utilization and cost efficiency.
+
+### System Design Overview
+
+```
+┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
+│                 │    │                 │    │                 │
+│     User's      │    │   FitCV Web     │    │    AI Model     │
+│    Browser      │◄──►│  Application    │◄──►│     Server      │
+│                 │    │ (EC2 t2.medium) │    │ (EC2 c5.xlarge) │
+│                 │    │                 │    │                 │
+└─────────────────┘    └─────────────────┘    └─────────────────┘
+                                │                        
+                                │                        
+                                ▼                        
+                       ┌─────────────────┐               
+                       │                 │               
+                       │   PostgreSQL    │               
+                       │    Database     │               
+                       │     (RDS)       │               
+                       │                 │               
+                       └─────────────────┘               
+```
+
+### Architecture Components
+
+#### 1. **Web Application Server (EC2 t2.medium #1)**
+- **Technology Stack**: Next.js, Node.js, Prisma
+- **Responsibilities**:
+  - User authentication and session management
+  - Profile and experience management
+  - Job submission handling
+  - PDF generation and download
+  - API orchestration
+- **Specifications**: 
+  - Instance Type: t3.medium (2 vCPU, 4GB RAM)
+  - Operating System: Ubuntu 22.04 LTS
+  - Load Balancer: Application Load Balancer for high availability
+
+#### 2. **AI Model Server (EC2 Instance #2)**
+- **Technology Stack**: Python, FastAPI, Qwen (Open-source LLM)
+- **Responsibilities**:
+  - CV content generation and tailoring
+  - Cover letter creation
+  - Professional summary optimization
+  - Job description analysis
+- **Model**: Qwen-2.5-7B-Instruct (or similar open-source model)
+- **Specifications**:
+  - Instance Type: c5.xlarge (4 vCPU, 8GB RAM, 1 GPU)
+  - Operating System: Ubuntu 24.04 LTS with CUDA support
+
+#### 3. **Database Layer (Amazon RDS)**
+- **Technology**: PostgreSQL 15
+- **Purpose**: 
+  - User profiles and authentication data
+  - Work experiences and skills
+  - Job submissions and generated documents
+  - Application history and analytics
+- **Configuration**: Multi-AZ deployment for high availability
+
+### Data Flow
+
+#### CV Generation Process:
+1. **User Input**: User submits job description through web interface
+2. **Data Preparation**: Web app extracts user profile data from PostgreSQL
+3. **AI Request**: Web app sends structured request to AI model server:
+   ```json
+   {
+     "job_description": "...",
+     "user_profile": {
+       "experiences": [...],
+       "skills": [...],
+       "summary": "..."
+     },
+     "generation_type": "cv"
+   }
+   ```
+4. **AI Processing**: Qwen model analyzes and generates tailored content
+5. **Response**: AI server returns structured JSON with optimized content
+6. **PDF Generation**: Web app creates PDF using React-PDF
+7. **Storage**: Generated document stored in database and S3
+8. **Delivery**: User downloads PDF or views in browser
+
+### API Communication
+
+#### Web App ↔ AI Model Server
+- **Protocol**: HTTP/HTTPS REST API
+- **Authentication**: API key-based authentication
+- **Endpoints**:
+  - `POST /api/generate/cv` - Generate tailored CV
+  - `POST /api/generate/cover-letter` - Generate cover letter
+  - `POST /api/generate/summary` - Generate professional summary
+  - `GET /api/health` - Health check endpoint
+
+#### Security & Performance
+- **Network**: Private VPC with security groups
+- **SSL/TLS**: End-to-end encryption
+- **Rate Limiting**: API throttling to prevent abuse
+- **Monitoring**: CloudWatch for system metrics and logging
+- **Backup**: Automated daily backups of database and model artifacts
+
+### Scalability Considerations
+- **Horizontal Scaling**: Auto Scaling Groups for web servers
+- **Model Scaling**: Multiple AI server instances behind load balancer
+- **Caching**: Redis for session management and API response caching
+- **CDN**: CloudFront for static asset delivery
+
+This architecture ensures high availability, cost efficiency, and the ability to scale based on demand while maintaining fast response times for AI-powered CV generation.
+
+---
+
 ## Technologies Used
 
 FitCV is built with modern, production-ready technologies:
 
 - **Next.js** – Full-stack React framework for seamless frontend and backend
-- **Google Gemini AI** – Advanced language model for intelligent CV generation
 - **PostgreSQL** – Reliable database for storing profiles and documents
 - **Prisma** – Type-safe database access and migrations
 - **Zustand** – Lightweight state management
 - **React PDF** – Client-side PDF generation for instant downloads
 - **Tailwind CSS** – Modern, responsive styling
 - **Untitled UI** – Professional component library
-- **Vercel** – Fast, reliable hosting and deployment
-
 ---
 
 ## Getting Started
