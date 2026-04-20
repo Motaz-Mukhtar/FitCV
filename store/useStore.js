@@ -66,7 +66,49 @@ export const useStore = create((set, get) => ({
   // Auth
   user: null,
   setUser: (user) => set({ user }),
-  logout: () => set({ user: null, profiles: [], submissions: [], pagination: { total: 0, page: 1, limit: 10, totalPages: 0 }, stats: { cv: 0, cover_letter: 0, summary: 0 } }),
+  logout: async () => {
+    try {
+      // Call logout API to clear httpOnly cookie
+      await fetch('/api/v1/auth/logout', {
+        method: 'POST',
+      });
+    } catch (error) {
+      console.error('Logout error:', error);
+    } finally {
+      // Clear client state regardless of API call result
+      set({ 
+        user: null, 
+        profiles: [], 
+        submissions: [], 
+        pagination: { total: 0, page: 1, limit: 10, totalPages: 0 }, 
+        stats: { cv: 0, cover_letter: 0, summary: 0 } 
+      });
+      
+      // Redirect to home page
+      if (typeof window !== 'undefined') {
+        window.location.href = '/';
+      }
+    }
+  },
+
+  // Check authentication status
+  checkAuth: async () => {
+    try {
+      const res = await fetch('/api/v1/auth/me');
+      if (res.ok) {
+        const data = await res.json();
+        set({ user: data.user });
+        return data.user;
+      } else {
+        set({ user: null });
+        return null;
+      }
+    } catch (error) {
+      console.error('Auth check error:', error);
+      set({ user: null });
+      return null;
+    }
+  },
 
   // Actions
   fetchProfiles: async () => {

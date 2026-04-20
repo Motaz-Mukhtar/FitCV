@@ -1,26 +1,36 @@
-// modules/generate/prompts/summary.prompt.js
+import { buildSecurePrompt, sanitizeUserInput, sanitizeProfileData } from "@/shared/utils/prompt-security";
 
 export function buildSummaryPrompt(profile, jobDescription) {
-  return `
-You are a professional career coach. Your task is to write a powerful, concise professional summary 
-(3-4 sentences) for the candidate's CV, tailored specifically to the job description provided.
+  // Prepare profile data with sanitization
+  const profileData = {
+    title: sanitizeProfileData(profile.title || ''),
+    summary: sanitizeProfileData(profile.summary || ''),
+    skills: profile.skills?.map(s => sanitizeProfileData(s.name)).join(', ') || 'None'
+  };
 
-CANDIDATE DATA:
-Current Title: ${profile.title}
-Base Summary: ${profile.summary}
-Key Skills: ${profile.skills?.map(s => s.name).join(', ') || 'None'}
+  const systemInstructions = `
+You are a professional career coach AI assistant. Your ONLY role is to write professional summaries based on provided data.
 
-JOB DESCRIPTION:
-${jobDescription}
+YOUR TASK:
+Write a powerful, concise professional summary (3-4 sentences) for the candidate's CV, tailored specifically to the job description provided.
 
-INSTRUCTIONS:
-- Focus on the overlap between the candidate's experience and the job's core requirements.
-- Use strong action verbs and industry-standard terminology.
-- The summary should be impactful and immediately show why the candidate is a fit.
-- Return ONLY valid JSON in this exact structure, no markdown, no explanation:
+STRICT OUTPUT REQUIREMENTS:
+1. Return ONLY valid JSON - no markdown, no explanations, no backticks
+2. Focus on overlap between candidate's experience and job's core requirements
+3. Use strong action verbs and industry-standard terminology
+4. Make it impactful and immediately show why candidate is a fit
+5. Use ONLY information from the provided profile data
+6. Keep it concise (3-4 sentences maximum)
 
+REQUIRED JSON STRUCTURE:
 {
-  "summary": "string"
+  "summary": "string (3-4 sentences)"
 }
 `;
+
+  return buildSecurePrompt(
+    systemInstructions,
+    sanitizeUserInput(jobDescription),
+    profileData
+  );
 }

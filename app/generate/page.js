@@ -73,7 +73,7 @@ export default function GeneratePage() {
       <main className="flex-1 max-w-4xl mx-auto w-full px-6 py-12">
         <div className="text-center mb-12">
           <h1 className="text-4xl font-black text-deep-navy tracking-tight mb-4">Generate Tailored CV</h1>
-          <p className="text-xl text-sapphire font-medium">Gemini AI will perfectly align your experience with this role</p>
+          <p className="text-xl text-sapphire font-medium">AI will perfectly align your experience with this role</p>
         </div>
 
         <Card className="shadow-2xl rounded-3xl overflow-hidden border-none p-0">
@@ -130,7 +130,7 @@ export default function GeneratePage() {
               <div className="mt-12 p-4 bg-sapphire/20 border border-sapphire/30 rounded-xl">
                 <p className="text-xs text-white/80 leading-relaxed font-medium">
                   <span className="text-sapphire font-black block mb-1">PRO TIP:</span>
-                  The more complete your base profile is, the better Gemini can tailor your CV to this specific role.
+                  The more complete your base profile is, the better AI can tailor your CV to this specific role.
                 </p>
               </div>
             </div>
@@ -160,7 +160,7 @@ export default function GeneratePage() {
               )}
 
               <div className="mt-8 flex items-center justify-between">
-                <p className="text-xs text-sapphire/60 font-medium">Gemini Pro will analyze and rewrite your content.</p>
+                <p className="text-xs text-sapphire/60 font-medium">AI will analyze and rewrite your content.</p>
                 <Button 
                   type="submit" 
                   size="lg" 

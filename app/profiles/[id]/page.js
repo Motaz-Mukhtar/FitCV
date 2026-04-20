@@ -5,19 +5,21 @@ import Navbar from '@/components/Navbar'
 import Card from '@/components/ui/Card'
 import Button from '@/components/ui/Button'
 import { useStore } from '@/store/useStore'
-import { useParams, useRouter } from 'next/navigation'
+import { useParams, useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 
 export default function ProfileDetailPage() {
   const { id } = useParams()
   const router = useRouter()
+  const searchParams = useSearchParams()
   const { profiles, fetchProfiles } = useStore()
   
   const [profile, setProfile] = useState(null)
   const [isAddingExp, setIsAddingExp] = useState(false)
-  const [isAddingSkill, setIsAddingSkill] = useState(false)
   const [isAddingEdu, setIsAddingEdu] = useState(false)
   const [isEditingBase, setIsEditingBase] = useState(false)
+  const [linkedinLoading, setLinkedinLoading] = useState(false)
+  const [message, setMessage] = useState({ type: '', text: '' })
   
   const [newExp, setNewExp] = useState({ role: '', company: '', start_date: '', end_date: '', description: '' })
   const [newSkill, setNewSkill] = useState({ name: '', type: 'hard' })
@@ -35,7 +37,26 @@ export default function ProfileDetailPage() {
 
   useEffect(() => {
     fetchProfiles()
-  }, [fetchProfiles])
+    
+    // Check for success/error messages from LinkedIn callback
+    const success = searchParams.get('success')
+    const error = searchParams.get('error')
+    
+    if (success === 'linkedin_imported') {
+      setMessage({ type: 'success', text: 'LinkedIn profile imported successfully!' })
+      // Clear URL parameters
+      router.replace(`/profiles/${id}`)
+    } else if (error) {
+      const errorMessages = {
+        'linkedin_auth_failed': 'LinkedIn authentication failed. Please try again.',
+        'linkedin_import_failed': 'Failed to import LinkedIn data. Please try again.',
+        'missing_parameters': 'Invalid LinkedIn callback. Please try again.'
+      }
+      setMessage({ type: 'error', text: errorMessages[error] || 'An error occurred with LinkedIn integration.' })
+      // Clear URL parameters
+      router.replace(`/profiles/${id}`)
+    }
+  }, [fetchProfiles, searchParams, id, router])
 
   useEffect(() => {
     if (profiles.length > 0) {
@@ -111,19 +132,75 @@ export default function ProfileDetailPage() {
 
   const handleAddSkill = async (e) => {
     e.preventDefault()
+    if (!newSkill.name.trim()) return;
+    
     try {
+      // Split by comma and create array of skills
+      const skillNames = newSkill.name
+        .split(',')
+        .map(name => name.trim())
+        .filter(name => name.length > 0); // Remove empty strings
+      
+      if (skillNames.length === 0) return;
+
+      // Create array of skill objects
+      const skillsToAdd = skillNames.map(name => ({
+        name,
+        type: newSkill.type
+      }));
+
       const res = await fetch(`/api/v1/profiles/${id}/skills`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(newSkill)
+        body: JSON.stringify(skillsToAdd)
       })
+      
       if (res.ok) {
         fetchProfiles()
-        setIsAddingSkill(false)
-        setNewSkill({ name: '', type: 'hard' })
+        setNewSkill({ name: '', type: 'hard' }) // Reset form
+        setMessage({ 
+          type: 'success', 
+          text: `${skillNames.length} skill${skillNames.length > 1 ? 's' : ''} added successfully!` 
+        })
+        // Clear success message after 3 seconds
+        setTimeout(() => setMessage({ type: '', text: '' }), 3000)
       }
     } catch (error) {
       console.error("Add skill error:", error)
+      setMessage({ type: 'error', text: 'Failed to add skills' })
+    }
+  }
+
+  const handleDeleteSkill = async (skillId) => {
+    try {
+      const res = await fetch(`/api/v1/skills/${skillId}`, {
+        method: 'DELETE',
+      })
+      if (res.ok) {
+        fetchProfiles() // Refresh to show updated skills
+      }
+    } catch (error) {
+      console.error("Delete skill error:", error)
+    }
+  }
+
+  const handleLinkedInConnect = async () => {
+    setLinkedinLoading(true)
+    try {
+      const response = await fetch(`/api/v1/auth/linkedin?profileId=${id}`)
+      const data = await response.json()
+      
+      if (data.success) {
+        // Redirect to LinkedIn OAuth
+        window.location.href = data.authUrl
+      } else {
+        setMessage({ type: 'error', text: 'Failed to initiate LinkedIn connection.' })
+      }
+    } catch (error) {
+      console.error('LinkedIn connect error:', error)
+      setMessage({ type: 'error', text: 'Failed to connect to LinkedIn. Please try again.' })
+    } finally {
+      setLinkedinLoading(false)
     }
   }
 
@@ -134,24 +211,52 @@ export default function ProfileDetailPage() {
       <Navbar />
       
       <main className="flex-1 max-w-7xl mx-auto w-full px-6 py-12">
-        <div className="mb-12 flex items-center justify-between">
+        <div className="mb-12 flex items-center justify-between flex-wrap">
           <div>
             <Link href="/profiles" className="text-sapphire hover:underline font-black uppercase text-xs tracking-widest mb-4 inline-block">← Back to Profiles</Link>
             <h1 className="text-4xl font-black text-deep-navy tracking-tight">{profile.full_name}</h1>
             <p className="text-xl text-sapphire font-medium mt-2">{profile.title}</p>
-            <div className="flex items-center space-x-4 mt-4 text-sm font-medium text-sapphire/70">
+            <div className="flex items-center space-x-4 mt-4
+                            text-sm font-medium text-sapphire/70
+                            flex-wrap justify-center mb-5">
               {profile.email && <span>📧 {profile.email}</span>}
               {profile.phone && <span>📞 {profile.phone}</span>}
               {profile.location && <span>📍 {profile.location}</span>}
             </div>
           </div>
-          <div className="flex space-x-4">
+          <div className="flex space-x-4 flex-wrap gap-2 justify-center">
+             <Button 
+               variant="outline" 
+               className="rounded-xl border-2 font-bold px-8 bg-[#0077B5] text-white border-[#0077B5] hover:bg-[#005885] transition-colors flex items-center space-x-2" 
+               onClick={handleLinkedInConnect}
+               disabled={linkedinLoading}
+             >
+               <span>🔗</span>
+               <span>{linkedinLoading ? 'Connecting...' : 'Connect to LinkedIn'}</span>
+             </Button>
              <Button variant="outline" className="rounded-xl border-2 font-bold px-8" onClick={() => setIsEditingBase(true)}>Edit Base Info</Button>
              <Link href="/generate">
                <Button className="rounded-xl px-8 shadow-lg shadow-sapphire/20">Generate CV</Button>
              </Link>
           </div>
         </div>
+
+        {/* Success/Error Messages */}
+        {message.text && (
+          <div className={`mb-8 p-4 rounded-xl border-2 ${
+            message.type === 'success' 
+              ? 'bg-green-50 border-green-200 text-green-800' 
+              : 'bg-red-50 border-red-200 text-red-800'
+          }`}>
+            <p className="font-medium">{message.text}</p>
+            <button 
+              onClick={() => setMessage({ type: '', text: '' })}
+              className="mt-2 text-xs underline opacity-70 hover:opacity-100"
+            >
+              Dismiss
+            </button>
+          </div>
+        )}
 
         {/* Edit Base Info Modal */}
         {isEditingBase && (
@@ -376,58 +481,103 @@ export default function ProfileDetailPage() {
               </h2>
               
               <div className="space-y-8">
+                {/* Quick Add Skills */}
+                <div className="bg-white/60 border border-powder-blue rounded-2xl p-6">
+                  <h3 className="text-sm font-black text-sapphire/60 uppercase tracking-widest mb-4">Quick Add Skills</h3>
+                  <div className="flex flex-col sm:flex-row gap-3 mb-4 flex-wrap">
+                    <input
+                      type="text"
+                      placeholder="e.g. React, Node.js, Python (comma-separated)"
+                      className="flex-1 min-w-[200px] px-4 py-2 rounded-lg border border-powder-blue outline-none focus:ring-2 focus:ring-sapphire text-sm"
+                      value={newSkill.name}
+                      onChange={(e) => setNewSkill({...newSkill, name: e.target.value})}
+                      onKeyPress={(e) => {
+                        if (e.key === 'Enter' && newSkill.name.trim()) {
+                          handleAddSkill(e);
+                        }
+                      }}
+                    />
+                    <div className="flex gap-2 flex-wrap">
+                      <div className="flex bg-ice-blue/50 rounded-lg p-1">
+                        <button 
+                          type="button" 
+                          onClick={() => setNewSkill({...newSkill, type: 'hard'})} 
+                          className={`px-3 py-1 rounded text-xs font-bold transition-all ${newSkill.type === 'hard' ? 'bg-white shadow-sm text-sapphire' : 'text-sapphire/60'}`}
+                        >
+                          Hard
+                        </button>
+                        <button 
+                          type="button" 
+                          onClick={() => setNewSkill({...newSkill, type: 'soft'})} 
+                          className={`px-3 py-1 rounded text-xs font-bold transition-all ${newSkill.type === 'soft' ? 'bg-white shadow-sm text-sapphire' : 'text-sapphire/60'}`}
+                        >
+                          Soft
+                        </button>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          if (newSkill.name.trim()) {
+                            handleAddSkill(e);
+                          }
+                        }}
+                        disabled={!newSkill.name.trim()}
+                        className="px-4 py-2 bg-sapphire text-white rounded-lg text-sm font-bold hover:bg-deep-navy transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        Add
+                      </button>
+                    </div>
+                  </div>
+                  <p className="text-xs text-sapphire/60">
+                    💡 Tip: Add multiple skills at once by separating them with commas
+                  </p>
+                </div>
+
                 {/* Hard Skills */}
                 <div>
                    <h3 className="text-xs font-black text-sapphire/40 uppercase tracking-widest mb-4">Hard Skills</h3>
                    <div className="flex flex-wrap gap-2">
                      {profile.skills?.filter(s => s.type === 'hard').map(skill => (
-                       <span key={skill.id} className="px-4 py-2 bg-white border border-powder-blue text-deep-navy font-bold rounded-xl text-sm shadow-sm hover:border-sapphire transition-colors">
-                         {skill.name}
-                       </span>
+                       <div key={skill.id} className="group relative" title={skill.name}>
+                         <span className="px-4 py-2 bg-white border border-powder-blue text-deep-navy font-bold rounded-xl text-sm shadow-sm hover:border-sapphire transition-colors pr-8 inline-block max-w-[200px] truncate">
+                           {skill.name}
+                         </span>
+                         <button
+                           onClick={() => handleDeleteSkill(skill.id)}
+                           className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white rounded-full text-xs opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-600 flex items-center justify-center"
+                         >
+                           ×
+                         </button>
+                       </div>
                      ))}
+                     {profile.skills?.filter(s => s.type === 'hard').length === 0 && (
+                       <p className="text-sapphire/40 italic text-sm">No hard skills added yet</p>
+                     )}
                    </div>
                 </div>
 
                 {/* Soft Skills */}
                 <div>
                    <h3 className="text-xs font-black text-sapphire/40 uppercase tracking-widest mb-4">Soft Skills</h3>
-                   <div className="flex flex-wrap gap-2">
+                   <div className="flex flex-wrap gap-2 items-center">
                      {profile.skills?.filter(s => s.type === 'soft').map(skill => (
-                       <span key={skill.id} className="px-4 py-2 bg-sapphire/5 border border-sapphire/20 text-sapphire font-bold rounded-xl text-sm shadow-sm hover:bg-sapphire/10 transition-colors">
-                         {skill.name}
-                       </span>
+                       <div key={skill.id} className="group relative" title={skill.name}>
+                         <span className="px-4 py-2 bg-sapphire/5 border border-sapphire/20 text-sapphire font-bold rounded-xl text-sm shadow-sm hover:bg-sapphire/10 transition-colors pr-8 inline-block max-w-[200px] truncate">
+                           {skill.name}
+                         </span>
+                         <button
+                           onClick={() => handleDeleteSkill(skill.id)}
+                           className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white rounded-full text-xs opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-600 flex items-center justify-center"
+                         >
+                           ×
+                         </button>
+                       </div>
                      ))}
+                     {profile.skills?.filter(s => s.type === 'soft').length === 0 && (
+                       <p className="text-sapphire/40 italic text-sm">No soft skills added yet</p>
+                     )}
                    </div>
                 </div>
-
-                <Button onClick={() => setIsAddingSkill(true)} variant="outline" className="w-full rounded-xl py-4 border-2 font-black tracking-tight text-xs uppercase">
-                  + Add Skill
-                </Button>
-
-                {isAddingSkill && (
-                  <Card className="animate-in zoom-in-95 duration-200">
-                    <form onSubmit={handleAddSkill} className="space-y-6">
-                       <div>
-                         <label className="block text-[10px] font-black text-sapphire/40 uppercase tracking-widest mb-2">Skill Name</label>
-                         <input required type="text" className="w-full px-4 py-2 rounded-lg border border-powder-blue outline-none" 
-                           value={newSkill.name} onChange={(e) => setNewSkill({...newSkill, name: e.target.value})} />
-                       </div>
-                       <div>
-                         <label className="block text-[10px] font-black text-sapphire/40 uppercase tracking-widest mb-2">Type</label>
-                         <div className="flex bg-ice-blue/30 p-1 rounded-xl">
-                            <button type="button" onClick={() => setNewSkill({...newSkill, type: 'hard'})} 
-                              className={`flex-1 py-2 rounded-lg font-bold text-xs uppercase tracking-widest transition-all ${newSkill.type === 'hard' ? 'bg-white shadow-sm text-sapphire' : 'text-sapphire/40'}`}>Hard</button>
-                            <button type="button" onClick={() => setNewSkill({...newSkill, type: 'soft'})} 
-                              className={`flex-1 py-2 rounded-lg font-bold text-xs uppercase tracking-widest transition-all ${newSkill.type === 'soft' ? 'bg-white shadow-sm text-sapphire' : 'text-sapphire/40'}`}>Soft</button>
-                         </div>
-                       </div>
-                       <div className="flex space-x-2">
-                         <Button type="button" variant="ghost" size="sm" onClick={() => setIsAddingSkill(false)}>Cancel</Button>
-                         <Button type="submit" size="sm" className="flex-1">Add</Button>
-                       </div>
-                    </form>
-                  </Card>
-                )}
               </div>
             </section>
 

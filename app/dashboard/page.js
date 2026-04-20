@@ -52,7 +52,11 @@ export default function DashboardPage() {
             { label: 'Total Profiles', value: profiles.length, color: 'bg-white' },
             { label: 'Tailored CVs', value: stats.cv, color: 'bg-white' },
             { label: 'Cover Letters', value: stats.cover_letter, color: 'bg-white' },
-            { label: 'Success Rate', value: '75%', color: 'bg-white' },
+            { 
+              label: 'Success Rate', 
+              value: '--', // Placeholder until we implement actual success tracking
+              color: 'bg-white' 
+            },
           ].map((stat, i) => (
             <div key={i} className={`${stat.color} p-8 rounded-2xl shadow-sm border border-powder-blue transition-all hover:shadow-md`}>
               <span className="text-xs font-black text-sapphire/40 uppercase tracking-widest block mb-2">{stat.label}</span>
@@ -166,8 +170,15 @@ export default function DashboardPage() {
                   <Card className="hover:border-sapphire transition-all duration-300 group">
                     <div className="flex items-center justify-between">
                       <div>
-                        <h4 className="text-lg font-bold text-deep-navy group-hover:text-sapphire transition-colors">{profile.name}</h4>
-                        <p className="text-xs text-sapphire font-medium mt-1">{profile.experiences?.length || 0} Experiences</p>
+                        <h4 className="text-lg font-bold text-deep-navy group-hover:text-sapphire transition-colors">
+                          {profile.full_name || 'Unnamed Profile'}
+                        </h4>
+                        <p className="text-xs text-sapphire font-medium mt-1">
+                          {profile.title || 'No title set'}
+                        </p>
+                        <p className="text-[10px] text-sapphire/60 font-medium mt-0.5">
+                          {profile.experiences?.length || 0} Experiences • {profile.skills?.length || 0} Skills
+                        </p>
                       </div>
                       {profile.is_default && (
                         <span className="text-[10px] font-black uppercase text-sapphire bg-ice-blue px-2 py-1 rounded-full">Default</span>

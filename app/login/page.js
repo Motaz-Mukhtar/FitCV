@@ -11,14 +11,41 @@ import Link from 'next/link'
 export default function LoginPage() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState('')
   const { setUser } = useStore()
   const router = useRouter()
 
-  const handleMockLogin = (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault()
-    // Mock user for Day 5 testing
-    setUser({ id: '00000000-0000-0000-0000-000000000001', email: email || 'test@fitcv.com' })
-    router.push('/dashboard')
+    setLoading(true)
+    setError('')
+
+    try {
+      const response = await fetch('/api/v1/auth/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email, password }),
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Login failed')
+      }
+
+      // Set user in store
+      setUser(data.user)
+      
+      // Redirect to dashboard
+      router.push('/dashboard')
+    } catch (err) {
+      setError(err.message)
+    } finally {
+      setLoading(false)
+    }
   }
 
   return (
@@ -32,7 +59,13 @@ export default function LoginPage() {
             <p className="text-sapphire font-medium">Log in to your FitCV account</p>
           </div>
 
-          <form onSubmit={handleMockLogin} className="space-y-6">
+          {error && (
+            <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-xl">
+              <p className="text-red-600 text-sm font-medium">{error}</p>
+            </div>
+          )}
+
+          <form onSubmit={handleLogin} className="space-y-6">
             <div>
               <label className="block text-xs font-black text-sapphire/40 uppercase tracking-widest mb-2">Email Address</label>
               <input 
@@ -41,6 +74,8 @@ export default function LoginPage() {
                 className="w-full px-5 py-3 rounded-xl border border-powder-blue outline-none focus:ring-2 focus:ring-sapphire focus:border-transparent transition-all font-medium"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
+                required
+                disabled={loading}
               />
             </div>
             <div>
@@ -51,11 +86,18 @@ export default function LoginPage() {
                 className="w-full px-5 py-3 rounded-xl border border-powder-blue outline-none focus:ring-2 focus:ring-sapphire focus:border-transparent transition-all font-medium"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
+                required
+                disabled={loading}
               />
             </div>
 
-            <Button type="submit" size="lg" className="w-full rounded-xl py-4 shadow-xl shadow-sapphire/20">
-              Log In
+            <Button 
+              type="submit" 
+              size="lg" 
+              className="w-full rounded-xl py-4 shadow-xl shadow-sapphire/20"
+              disabled={loading}
+            >
+              {loading ? 'Logging in...' : 'Log In'}
             </Button>
             
             <div className="relative py-4">

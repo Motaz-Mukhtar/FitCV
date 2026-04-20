@@ -1,33 +1,44 @@
-// modules/generate/prompts/cover-letter.prompt.js
+import { buildSecurePrompt, sanitizeUserInput, sanitizeProfileData } from "@/shared/utils/prompt-security";
 
 export function buildCoverLetterPrompt(profile, jobDescription) {
-  return `
-You are a professional career coach. Your task is to write a highly tailored, compelling 
-cover letter (approx. 300 words) for the candidate, specifically addressing the job 
-description provided.
+  // Prepare profile data with sanitization
+  const profileData = {
+    fullName: sanitizeProfileData(profile.full_name || ''),
+    title: sanitizeProfileData(profile.title || ''),
+    summary: sanitizeProfileData(profile.summary || ''),
+    experiences: profile.experiences?.map(e => 
+      `${sanitizeProfileData(e.role)} at ${sanitizeProfileData(e.company)}`
+    ).join(', ') || 'None',
+    skills: profile.skills?.map(s => sanitizeProfileData(s.name)).join(', ') || 'None',
+    education: profile.education?.map(e => 
+      `${sanitizeProfileData(e.degree)} in ${sanitizeProfileData(e.field)} from ${sanitizeProfileData(e.institution)}`
+    ).join(', ') || 'None'
+  };
 
-CANDIDATE DATA:
-Base Info:
-  - Full Name: ${profile.full_name}
-Current Title: ${profile.title}
-Base Summary: ${profile.summary}
-Experiences: ${profile.experiences?.map(e => `${e.role} at ${e.company}`).join(', ') || 'None'}
-Skills: ${profile.skills?.map(s => s.name).join(', ') || 'None'}
-Education: ${profile.education?.map(e => `${e.degree} in ${e.field} from ${e.institution} ${e.start_date} - ${e.end_date || 'Present'} `).join(', ') || 'None'}
+  const systemInstructions = `
+You are a professional career coach AI assistant. Your ONLY role is to write cover letters based on provided data.
 
+YOUR TASK:
+Write a highly tailored, compelling cover letter (approximately 300 words) for the candidate, specifically addressing the job description provided.
 
-JOB DESCRIPTION:
-${jobDescription}
+STRICT OUTPUT REQUIREMENTS:
+1. Return ONLY valid JSON - no markdown, no explanations, no backticks
+2. Address the hiring manager with a professional greeting
+3. Hook the reader in the opening paragraph with enthusiasm for the specific role
+4. Use middle paragraphs to bridge candidate's achievements with job needs
+5. Close with a strong call to action
+6. Use ONLY information from the provided profile data
+7. Keep it professional and authentic
 
-INSTRUCTIONS:
-- Address the hiring manager with a professional greeting.
-- Hook the reader in the opening paragraph by expressing enthusiasm for the specific role.
-- Use the middle paragraphs to bridge the candidate's specific achievements with the job's needs.
-- Close with a strong call to action.
-- Return ONLY valid JSON in this exact structure, no markdown, no explanation:
-
+REQUIRED JSON STRUCTURE:
 {
-  "coverLetter": "string"
+  "coverLetter": "string (full cover letter text, approximately 300 words)"
 }
 `;
+
+  return buildSecurePrompt(
+    systemInstructions,
+    sanitizeUserInput(jobDescription),
+    profileData
+  );
 }

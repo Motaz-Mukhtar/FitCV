@@ -22,7 +22,7 @@ export default function Home() {
           </h1>
           
           <p className="text-xl md:text-2xl text-sapphire/80 mb-12 max-w-3xl leading-relaxed">
-            Stop sending the same generic CV. FitCV uses Gemini AI to perfectly align 
+            Stop sending the same generic CV. FitCV uses AI to perfectly align 
             your experience with any job description, increasing your interview chances.
           </p>
           
@@ -41,16 +41,52 @@ export default function Home() {
           
           {/* Dashboard Preview / Visual element */}
           <div className="mt-20 w-full max-w-5xl bg-white/40 border border-white/50 rounded-2xl shadow-2xl p-4 backdrop-blur-md transform hover:scale-[1.02] transition-transform duration-500">
-             <div className="bg-white rounded-xl shadow-inner border border-powder-blue aspect-[16/9] flex items-center justify-center text-sapphire/20 font-black text-4xl overflow-hidden relative">
+             <div className="bg-white rounded-xl shadow-inner border border-powder-blue aspect-[16/9] overflow-hidden relative">
                <div className="absolute inset-0 bg-gradient-to-br from-ice-blue/50 via-transparent to-sapphire/5"></div>
-               <div className="z-10 flex flex-col items-center space-y-4">
-                 <div className="w-64 h-8 bg-ice-blue rounded-full animate-pulse"></div>
-                 <div className="w-96 h-4 bg-ice-blue rounded-full animate-pulse"></div>
-                 <div className="w-48 h-4 bg-ice-blue rounded-full animate-pulse"></div>
-                 <div className="mt-8 grid grid-cols-3 gap-4 w-full px-12">
-                   <div className="h-32 bg-ice-blue rounded-xl animate-pulse"></div>
-                   <div className="h-32 bg-ice-blue rounded-xl animate-pulse delay-75"></div>
-                   <div className="h-32 bg-ice-blue rounded-xl animate-pulse delay-150"></div>
+               
+               {/* Dashboard Content Preview */}
+               <div className="relative z-10 p-6 h-full flex flex-col animate-fade-in-delayed">
+                 {/* Header */}
+                 <div className="flex items-center justify-between mb-6">
+                   <div>
+                     <div className="h-6 w-40 bg-deep-navy/80 rounded mb-2"></div>
+                     <div className="h-3 w-32 bg-sapphire/40 rounded"></div>
+                   </div>
+                   <div className="h-10 w-32 bg-sapphire rounded-lg"></div>
+                 </div>
+
+                 {/* Stats Grid */}
+                 <div className="grid grid-cols-4 gap-3 mb-6">
+                   {[
+                     { label: 'Profiles', value: '3' },
+                     { label: 'CVs', value: '12' },
+                     { label: 'Letters', value: '8' },
+                     { label: 'Success', value: '75%' }
+                   ].map((stat, i) => (
+                     <div key={i} className="bg-white/80 p-3 rounded-lg border border-powder-blue/50 shadow-sm animate-slide-up" style={{ animationDelay: `${i * 100}ms` }}>
+                       <div className="h-2 w-16 bg-sapphire/30 rounded mb-2"></div>
+                       <div className="text-lg font-black text-deep-navy">{stat.value}</div>
+                     </div>
+                   ))}
+                 </div>
+
+                 {/* Recent Activity Cards */}
+                 <div className="flex-1 space-y-2">
+                   {[1, 2].map((i) => (
+                     <div key={i} className="bg-white/90 p-4 rounded-lg border border-powder-blue/50 shadow-sm flex items-center justify-between animate-slide-up" style={{ animationDelay: `${400 + i * 100}ms` }}>
+                       <div className="flex items-center space-x-3">
+                         <div className="w-10 h-10 bg-ice-blue rounded-lg flex items-center justify-center text-lg">💼</div>
+                         <div>
+                           <div className="h-3 w-32 bg-deep-navy/70 rounded mb-1"></div>
+                           <div className="h-2 w-24 bg-sapphire/40 rounded"></div>
+                         </div>
+                       </div>
+                       <div className="flex space-x-1">
+                         <div className="w-6 h-6 bg-ice-blue/50 rounded"></div>
+                         <div className="w-6 h-6 bg-ice-blue/50 rounded"></div>
+                       </div>
+                     </div>
+                   ))}
                  </div>
                </div>
              </div>
@@ -80,7 +116,7 @@ export default function Home() {
                 {
                   step: "03",
                   title: "Generate & Download",
-                  desc: "Gemini AI tailored your content. Preview, tweak, and download as a professional PDF."
+                  desc: "AI-Generated tailored your content. Preview, tweak, and download as a professional PDF."
                 }
               ].map((f, i) => (
                 <div key={i} className="flex flex-col items-start p-8 rounded-2xl bg-ice-blue/30 border border-ice-blue transition-all hover:shadow-lg hover:border-sapphire/30 group">
@@ -97,7 +133,7 @@ export default function Home() {
       <footer className="bg-deep-navy py-12 px-6 text-white text-center">
         <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between">
           <div className="text-2xl font-bold mb-4 md:mb-0">FitCV</div>
-          <p className="text-white/60">&copy; 2026 FitCV. Powered by Gemini AI.</p>
+          <p className="text-white/60">&copy; 2026 FitCV. Powered By AI.</p>
           <div className="flex space-x-6 mt-4 md:mt-0">
             <Link href="#" className="hover:text-sapphire transition-colors">Privacy</Link>
             <Link href="#" className="hover:text-sapphire transition-colors">Terms</Link>

@@ -665,7 +665,7 @@ function BulletItem({ text }) {
   return (
     <View style={styles.bulletRow}>
       <View style={styles.bulletSquare} />
-      <Text style={styles.bulletText}>{text}</Text>
+      <Text style={styles.bulletText}>{String(text || '')}</Text>
     </View>
   );
 }
@@ -674,7 +674,7 @@ function SkillItem({ text }) {
   return (
     <View style={styles.skillRow}>
       <View style={styles.skillSquare} />
-      <Text style={styles.skillText}>{text}</Text>
+      <Text style={styles.skillText}>{String(text || '')}</Text>
     </View>
   );
 }
@@ -687,6 +687,17 @@ function splitColumns(arr) {
 // ─── MAIN DOCUMENT ───────────────────────────────────────────────────────────
 
 export const CVDocument = ({ data, profile }) => {
+  // Defensive validation - ensure data and profile exist
+  if (!data || !profile) {
+    return (
+      <Document>
+        <Page size="A4" style={styles.page}>
+          <Text style={styles.headerName}>ERROR: MISSING DATA</Text>
+        </Page>
+      </Document>
+    )
+  }
+
   const contactInfo = data.contactInfo || {};
 
   // FIX: keep hard and soft skills SEPARATE — do not merge them
@@ -699,33 +710,33 @@ export const CVDocument = ({ data, profile }) => {
 
         {/* ── NAME ── */}
         <Text style={styles.headerName}>
-          {(contactInfo.fullName || profile?.name || '').toUpperCase()}
+          {String(contactInfo.fullName || profile?.name || '').toUpperCase()}
         </Text>
 
         {/* ── CONTACT ROW ── */}
         <View style={styles.contactRow}>
-          {contactInfo.location && (
+          {contactInfo.location && String(contactInfo.location) && (
             <View style={styles.contactItem}>
               <IconLocation />
-              <Text style={styles.contactText}>{contactInfo.location}</Text>
+              <Text style={styles.contactText}>{String(contactInfo.location)}</Text>
             </View>
           )}
-          {contactInfo.phone && (
+          {contactInfo.phone && String(contactInfo.phone) && (
             <View style={styles.contactItem}>
               <IconPhone />
-              <Text style={styles.contactText}>{contactInfo.phone}</Text>
+              <Text style={styles.contactText}>{String(contactInfo.phone)}</Text>
             </View>
           )}
-          {contactInfo.email && (
+          {contactInfo.email && String(contactInfo.email) && (
             <View style={styles.contactItem}>
               <IconEmail />
-              <Text style={styles.contactText}>{contactInfo.email}</Text>
+              <Text style={styles.contactText}>{String(contactInfo.email)}</Text>
             </View>
           )}
-          {contactInfo.linkedin && (
+          {contactInfo.linkedin && String(contactInfo.linkedin) && (
             <View style={styles.contactItem}>
               <IconLinkedIn />
-              <Text style={styles.contactText}>{contactInfo.linkedin}</Text>
+              <Text style={styles.contactText}>{String(contactInfo.linkedin)}</Text>
             </View>
           )}
         </View>
@@ -733,60 +744,69 @@ export const CVDocument = ({ data, profile }) => {
         {/* ── TITLE BAR ── */}
         <View style={styles.titleBar}>
           <Text style={styles.titleText}>
-            {(data.title || profile?.title || '').toUpperCase()}
+            {String(data.title || profile?.title || '').toUpperCase()}
           </Text>
         </View>
 
         {/* ── PROFESSIONAL SUMMARY ── */}
         <SectionHeader title="Profile / Summary" />
-        <Text style={styles.summaryText}>{data.summary}</Text>
+        <Text style={styles.summaryText}>{String(data.summary || '')}</Text>
 
         {/* ── PROFESSIONAL EXPERIENCE ── */}
         <SectionHeader title="Work Experience" />
-        {(data.experiences || []).map((exp, i) => (
-          <View key={i} style={styles.expBlock}>
+        {(data.experiences || []).map((exp, i) => {
+          // Ensure exp has all required fields
+          if (!exp || !exp.role) return null;
+          
+          return (
+            <View key={i} style={styles.expBlock}>
+              {/* FIX: role • date on one line, company underneath — no wrapping */}
+              <View style={styles.expFirstLine}>
+                <Text style={styles.expRole}>{String(exp.role || '')}</Text>
+                <Text style={styles.expDot}>•</Text>
+                <Text style={styles.expDate}>
+                  {String(exp.startDate || '')} – {String(exp.endDate || 'Present')}
+                </Text>
+              </View>
+              <Text style={styles.expCompany}>{String(exp.company || '')}</Text>
 
-            {/* FIX: role • date on one line, company underneath — no wrapping */}
-            <View style={styles.expFirstLine}>
-              <Text style={styles.expRole}>{exp.role}</Text>
-              <Text style={styles.expDot}>•</Text>
-              <Text style={styles.expDate}>
-                {exp.startDate} – {exp.endDate || 'Present'}
-              </Text>
+              <View style={styles.bulletList}>
+                {(exp.bullets || []).map((b, bi) => (
+                  <BulletItem key={bi} text={String(b || '')} />
+                ))}
+              </View>
             </View>
-            <Text style={styles.expCompany}>{exp.company}</Text>
-
-            <View style={styles.bulletList}>
-              {(exp.bullets || []).map((b, bi) => (
-                <BulletItem key={bi} text={b} />
-              ))}
-            </View>
-          </View>
-        ))}
+          )
+        })}
 
         {/* ── EDUCATION AND CREDENTIALS ── */}
         {data.education && data.education.length > 0 && (
           <View>
             <SectionHeader title="Education and Credentials" />
-            {data.education.map((edu, i) => (
-              <View key={i} style={styles.eduBlock}>
-                <Text style={styles.eduDegree}>
-                  {edu.degree} in {edu.field},{' '}
-                  <Text style={{ fontFamily: 'Helvetica' }}>
-                    {edu.endDate || edu.startDate}
+            {data.education.map((edu, i) => {
+              // Ensure edu has required fields
+              if (!edu || !edu.degree) return null;
+              
+              return (
+                <View key={i} style={styles.eduBlock}>
+                  <Text style={styles.eduDegree}>
+                    {String(edu.degree || '')} in {String(edu.field || 'N/A')},{' '}
+                    <Text style={{ fontFamily: 'Helvetica' }}>
+                      {String(edu.endDate || edu.startDate || '')}
+                    </Text>
                   </Text>
-                </Text>
-                <View style={styles.eduMeta}>
-                  <Text style={styles.eduInstitution}>{edu.institution}</Text>
-                  {edu.location && (
-                    <>
-                      <Text style={styles.eduDot}>•</Text>
-                      <Text style={styles.eduDate}>{edu.location}</Text>
-                    </>
-                  )}
+                  <View style={styles.eduMeta}>
+                    <Text style={styles.eduInstitution}>{String(edu.institution || '')}</Text>
+                    {edu.location && String(edu.location) && (
+                      <>
+                        <Text style={styles.eduDot}>•</Text>
+                        <Text style={styles.eduDate}>{String(edu.location)}</Text>
+                      </>
+                    )}
+                  </View>
                 </View>
-              </View>
-            ))}
+              )
+            })}
           </View>
         )}
 

@@ -58,6 +58,14 @@ export async function POST(req) {
 
   } catch (error) {
     console.error("Generate Cover Letter Error:", error);
-    return NextResponse.json({ error: "Failed to generate tailored cover letter" }, { status: 500 });
+    
+    // Pass through user-friendly error messages
+    const errorMessage = error.message || "Failed to generate tailored cover letter";
+    const statusCode = error.message?.includes('high demand') || error.message?.includes('rate limit') ? 503 : 500;
+    
+    return NextResponse.json({ 
+      error: errorMessage,
+      retryable: statusCode === 503 
+    }, { status: statusCode });
   }
 }

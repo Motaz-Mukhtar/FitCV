@@ -5,6 +5,7 @@ import Navbar from '@/components/Navbar'
 import Card from '@/components/ui/Card'
 import Button from '@/components/ui/Button'
 import { useParams } from 'next/navigation'
+import { PDFViewer, PDFDownloadLink } from '@react-pdf/renderer'
 import { CVDocument } from '@/components/pdf/CVDocument'
 
 export default function CVPreviewPage() {
@@ -13,17 +14,9 @@ export default function CVPreviewPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [mounted, setMounted] = useState(false)
-  const [pdfComponents, setPdfComponents] = useState(null)
 
-  // Only load @react-pdf/renderer on the client after mount
   useEffect(() => {
     setMounted(true)
-    import('@react-pdf/renderer').then((mod) => {
-      setPdfComponents({
-        PDFViewer: mod.PDFViewer,
-        PDFDownloadLink: mod.PDFDownloadLink,
-      })
-    })
   }, [])
 
   useEffect(() => {
@@ -37,6 +30,7 @@ export default function CVPreviewPage() {
           setError(data.error || 'Failed to fetch document')
         }
       } catch (err) {
+        console.error('Fetch error:', err)
         setError('An error occurred while loading the document')
       } finally {
         setLoading(false)
@@ -80,10 +74,47 @@ export default function CVPreviewPage() {
     </div>
   )
 
+  // Parse and validate the content data - convert everything to plain strings
   const cvData = document.content
-  const profile = document.submission.profile
-console.log(profile);
-console.log(cvData);
+  
+  const validatedData = {
+    contactInfo: {
+      fullName: String(cvData?.contactInfo?.fullName || ''),
+      email: String(cvData?.contactInfo?.email || ''),
+      phone: String(cvData?.contactInfo?.phone || ''),
+      location: String(cvData?.contactInfo?.location || ''),
+      linkedin: String(cvData?.contactInfo?.linkedin || ''),
+    },
+    title: String(cvData?.title || ''),
+    summary: String(cvData?.summary || ''),
+    experiences: Array.isArray(cvData?.experiences) 
+      ? cvData.experiences.map(exp => ({
+          company: String(exp?.company || ''),
+          role: String(exp?.role || ''),
+          startDate: String(exp?.startDate || ''),
+          endDate: String(exp?.endDate || ''),
+          bullets: Array.isArray(exp?.bullets) ? exp.bullets.map(b => String(b || '')) : []
+        }))
+      : [],
+    education: Array.isArray(cvData?.education) 
+      ? cvData.education.map(edu => ({
+          institution: String(edu?.institution || ''),
+          degree: String(edu?.degree || ''),
+          field: String(edu?.field || ''),
+          startDate: String(edu?.startDate || ''),
+          endDate: String(edu?.endDate || ''),
+          location: String(edu?.location || '')
+        }))
+      : [],
+    hardSkills: Array.isArray(cvData?.hardSkills) ? cvData.hardSkills.filter(Boolean).map(s => String(s)) : [],
+    softSkills: Array.isArray(cvData?.softSkills) ? cvData.softSkills.filter(Boolean).map(s => String(s)) : [],
+  }
+
+  const profile = {
+    name: String(document.submission.profile.full_name || ''),
+    title: String(document.submission.profile.title || '')
+  }
+
   return (
     <div className="min-h-screen bg-ice-blue/30 flex flex-col">
       <Navbar />
@@ -98,9 +129,9 @@ console.log(cvData);
           </div>
 
           <div className="flex items-center space-x-4">
-            {mounted && pdfComponents ? (
-              <pdfComponents.PDFDownloadLink
-                document={<CVDocument data={cvData} profile={profile} />}
+            {mounted ? (
+              <PDFDownloadLink
+                document={<CVDocument data={validatedData} profile={profile} />}
                 fileName={`CV_${document.submission.company_name || 'Tailored'}.pdf`}
               >
                 {({ blob, url, loading: dlLoading, error: dlError }) => (
@@ -108,7 +139,7 @@ console.log(cvData);
                     {dlLoading ? 'Preparing PDF...' : 'Download PDF'}
                   </Button>
                 )}
-              </pdfComponents.PDFDownloadLink>
+              </PDFDownloadLink>
             ) : (
               <Button size="lg" className="rounded-xl px-10 py-4 shadow-xl shadow-sapphire/20" isLoading={true}>
                 Loading...
@@ -119,10 +150,10 @@ console.log(cvData);
 
         <div className="grid lg:grid-cols-1 gap-12">
           <Card className="p-0 overflow-hidden bg-deep-navy/5 border-none shadow-2xl h-[calc(100vh-280px)]">
-            {mounted && pdfComponents ? (
-              <pdfComponents.PDFViewer className="w-full h-[calc(100vh-280px)] border-none">
-                <CVDocument data={cvData} profile={profile} />
-              </pdfComponents.PDFViewer>
+            {mounted ? (
+              <PDFViewer className="w-full h-[calc(100vh-280px)] border-none">
+                <CVDocument data={validatedData} profile={profile} />
+              </PDFViewer>
             ) : (
               <div className="w-full h-full flex items-center justify-center">
                 <div className="w-16 h-16 border-4 border-sapphire border-t-transparent rounded-full animate-spin"></div>

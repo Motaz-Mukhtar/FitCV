@@ -8,8 +8,10 @@ export async function GET(req, { params }) {
   if (!user) return unauthorizedResponse();
 
   try {
+    const { id } = await params; // Await params
+    
     const profile = await prisma.profile.findFirst({
-      where: { id: params.id, user_id: user.id, deleted_at: null },
+      where: { id, user_id: user.id, deleted_at: null },
       include: {
         experiences: { where: { deleted_at: null } },
         skills: true,
@@ -34,12 +36,13 @@ export async function PUT(req, { params }) {
   if (!user) return unauthorizedResponse();
 
   try {
+    const { id } = await params; // Await params
     const data = await req.json();
     const { full_name, title, summary, email, phone, location, linkedin_url, portfolio_url, is_default } = data;
 
     // Verify ownership
     const existing = await prisma.profile.findFirst({
-      where: { id: params.id, user_id: user.id, deleted_at: null },
+      where: { id, user_id: user.id, deleted_at: null },
     });
 
     if (!existing) {
@@ -55,7 +58,7 @@ export async function PUT(req, { params }) {
     }
 
     const updated = await prisma.profile.update({
-      where: { id: params.id },
+      where: { id },
       data: {
         full_name: full_name !== undefined ? full_name : existing.full_name,
         title: title !== undefined ? title : existing.title,
@@ -83,9 +86,11 @@ export async function DELETE(req, { params }) {
   if (!user) return unauthorizedResponse();
 
   try {
+    const { id } = await params; // Await params
+    
     // Verify ownership
     const existing = await prisma.profile.findFirst({
-      where: { id: params.id, user_id: user.id, deleted_at: null },
+      where: { id, user_id: user.id, deleted_at: null },
     });
 
     if (!existing) {
@@ -93,7 +98,7 @@ export async function DELETE(req, { params }) {
     }
 
     await prisma.profile.update({
-      where: { id: params.id },
+      where: { id },
       data: { deleted_at: new Date() },
     });
 

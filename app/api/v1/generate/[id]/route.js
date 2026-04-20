@@ -6,6 +6,8 @@ export async function GET(req, { params }) {
   const user = await authMiddleware(req);
   if (!user) return unauthorizedResponse();
 
+  params = await params;
+
   try {
     const document = await prisma.generatedDocument.findFirst({
       where: { id: params.id, user_id: user.id },

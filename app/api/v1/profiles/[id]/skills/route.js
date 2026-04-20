@@ -8,9 +8,11 @@ export async function GET(req, { params }) {
   if (!user) return unauthorizedResponse();
 
   try {
+    const { id } = await params; // Await params
+    
     const skills = await prisma.skill.findMany({
       where: {
-        profile_id: params.id,
+        profile_id: id,
         profile: { user_id: user.id },
       },
       orderBy: { created_at: "asc" },
@@ -23,39 +25,49 @@ export async function GET(req, { params }) {
   }
 }
 
-// POST /api/v1/profiles/[id]/skills - Create new skill
+// POST /api/v1/profiles/[id]/skills - Create new skill(s)
 export async function POST(req, { params }) {
   const user = await authMiddleware(req);
   if (!user) return unauthorizedResponse();
 
   try {
+    const { id } = await params; // Await params
     const data = await req.json();
-    const { name, type } = data; // type: 'hard' | 'soft'
+    
+    // Support both single skill and multiple skills
+    const skills = Array.isArray(data) ? data : [data];
 
-    if (!name || !type) {
-      return NextResponse.json({ error: "Required fields missing" }, { status: 400 });
+    // Validate all skills
+    for (const skill of skills) {
+      if (!skill.name || !skill.type) {
+        return NextResponse.json({ error: "Each skill requires name and type" }, { status: 400 });
+      }
     }
 
     // Verify profile ownership
     const profile = await prisma.profile.findFirst({
-      where: { id: params.id, user_id: user.id, deleted_at: null },
+      where: { id, user_id: user.id, deleted_at: null },
     });
 
     if (!profile) {
       return NextResponse.json({ error: "Profile not found" }, { status: 404 });
     }
 
-    const skill = await prisma.skill.create({
-      data: {
-        profile_id: params.id,
-        name,
-        type,
-      },
+    // Create all skills
+    const createdSkills = await prisma.skill.createMany({
+      data: skills.map(skill => ({
+        profile_id: id,
+        name: skill.name.trim(),
+        type: skill.type,
+      })),
     });
 
-    return NextResponse.json(skill, { status: 201 });
+    return NextResponse.json({ 
+      success: true, 
+      count: createdSkills.count 
+    }, { status: 201 });
   } catch (error) {
     console.error("POST skill error:", error);
-    return NextResponse.json({ error: "Failed to create skill" }, { status: 500 });
+    return NextResponse.json({ error: "Failed to create skill(s)" }, { status: 500 });
   }
 }

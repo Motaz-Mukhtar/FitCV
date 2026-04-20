@@ -8,9 +8,11 @@ export async function GET(req, { params }) {
   if (!user) return unauthorizedResponse();
 
   try {
+    const { id } = await params; // Await params
+    
     const experiences = await prisma.experience.findMany({
       where: {
-        profile_id: params.id,
+        profile_id: id,
         profile: { user_id: user.id },
         deleted_at: null,
       },
@@ -30,6 +32,7 @@ export async function POST(req, { params }) {
   if (!user) return unauthorizedResponse();
 
   try {
+    const { id } = await params; // Await params
     const data = await req.json();
     const { company, role, start_date, end_date, description } = data;
 
@@ -39,7 +42,7 @@ export async function POST(req, { params }) {
 
     // Verify profile ownership
     const profile = await prisma.profile.findFirst({
-      where: { id: params.id, user_id: user.id, deleted_at: null },
+      where: { id, user_id: user.id, deleted_at: null },
     });
 
     if (!profile) {
@@ -48,7 +51,7 @@ export async function POST(req, { params }) {
 
     const experience = await prisma.experience.create({
       data: {
-        profile_id: params.id,
+        profile_id: id,
         company,
         role,
         start_date: new Date(start_date),

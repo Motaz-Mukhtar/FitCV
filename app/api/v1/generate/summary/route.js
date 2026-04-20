@@ -57,6 +57,14 @@ export async function POST(req) {
 
   } catch (error) {
     console.error("Generate Summary Error:", error);
-    return NextResponse.json({ error: "Failed to generate tailored summary" }, { status: 500 });
+    
+    // Pass through user-friendly error messages
+    const errorMessage = error.message || "Failed to generate tailored summary";
+    const statusCode = error.message?.includes('high demand') || error.message?.includes('rate limit') ? 503 : 500;
+    
+    return NextResponse.json({ 
+      error: errorMessage,
+      retryable: statusCode === 503 
+    }, { status: statusCode });
   }
 }

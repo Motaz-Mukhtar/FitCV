@@ -1,47 +1,50 @@
+import { buildSecurePrompt, sanitizeUserInput, sanitizeProfileData } from "@/shared/utils/prompt-security";
+
 export function buildCVPrompt(profile, jobDescription) {
-  return `
-You are a professional CV writer. Your task is to tailor the candidate's CV 
-to best match the job description provided.
+  // Prepare profile data with sanitization
+  const profileData = {
+    fullName: sanitizeProfileData(profile.full_name || ''),
+    email: sanitizeProfileData(profile.email || ''),
+    phone: sanitizeProfileData(profile.phone || ''),
+    location: sanitizeProfileData(profile.location || ''),
+    linkedin: sanitizeProfileData(profile.linkedin_url || ''),
+    title: sanitizeProfileData(profile.title || ''),
+    summary: sanitizeProfileData(profile.summary || ''),
+    education: profile.education?.map(e => ({
+      degree: sanitizeProfileData(e.degree || ''),
+      field: sanitizeProfileData(e.field || ''),
+      institution: sanitizeProfileData(e.institution || ''),
+      startDate: e.start_date,
+      endDate: e.end_date
+    })) || [],
+    experiences: profile.experiences?.map(e => ({
+      role: sanitizeProfileData(e.role || ''),
+      company: sanitizeProfileData(e.company || ''),
+      startDate: e.start_date,
+      endDate: e.end_date,
+      description: sanitizeProfileData(e.description || '')
+    })) || [],
+    hardSkills: profile.skills?.filter(s => s.type === 'hard').map(s => sanitizeProfileData(s.name)) || [],
+    softSkills: profile.skills?.filter(s => s.type === 'soft').map(s => sanitizeProfileData(s.name)) || []
+  };
 
-CANDIDATE PROFILE:
-Full Name: ${profile.full_name}
-Email: ${profile.email}
-Phone: ${profile.phone ?? 'not provided'}
-Location: ${profile.location ?? 'not provided'}
-LinkedIn: ${profile.linkedin_url ?? 'not provided'}
-Professional Title: ${profile.title}
-Base Summary: ${profile.summary}
+  const systemInstructions = `
+You are a professional CV writer AI assistant. Your ONLY role is to tailor CVs based on provided data.
 
-EDUCATION:
-${profile.education.map(e => `
-  - ${e.degree} in ${e.field}
-    ${e.institution}
-    ${e.start_date} - ${e.end_date ?? 'Present'}
-`).join('\n')}
+YOUR TASK:
+Analyze the candidate's profile data and job description, then generate a tailored CV in JSON format.
 
-EXPERIENCES:
-${profile.experiences.map(e => `
-  - ${e.role} at ${e.company}
-    Start: ${e.start_date} | End: ${e.end_date ?? 'Present'}
-    ${e.description}
-`).join('\n')}
+STRICT OUTPUT REQUIREMENTS:
+1. Return ONLY valid JSON - no markdown, no explanations, no backticks
+2. Tailor the summary specifically to the role and company
+3. Rewrite experience bullets to highlight relevant achievements
+4. Only include skills relevant to the job description
+5. Dates MUST use format: "Month YYYY" (e.g., "January 2025")
+6. Always include education section
+7. Use ONLY information from the provided profile data
+8. Identify must-have vs nice-to-have requirements from job description
 
-SKILLS:
-Hard Skills: ${profile.skills.filter(s => s.type === 'hard').map(s => s.name).join(', ')}
-Soft Skills: ${profile.skills.filter(s => s.type === 'soft').map(s => s.name).join(', ')}
-
-JOB DESCRIPTION:
-${jobDescription}
-
-STRICT INSTRUCTIONS:
-- Tailor the summary specifically to this exact role and company
-- Rewrite experience bullets to highlight what is most relevant to this job
-- Only include skills relevant to this job description
-- Dates MUST follow this format: "Month YYYY" (e.g. "January 2025", "August 2024")
-- Always include the education section even if not required by the job
-- Return ONLY valid JSON, no markdown, no explanation, no backticks:
-- Don't address any additional information about the candidate that is not provided in the profile data, only use what is given.
-- Identify the Must-Haves vs. Nice-to-Haves Look for words like “required,” “must have,” or qualifications listed early on. These are top priorities.
+REQUIRED JSON STRUCTURE:
 {
   "contactInfo": {
     "fullName": "string",
@@ -51,13 +54,13 @@ STRICT INSTRUCTIONS:
     "linkedin": "string or null"
   },
   "title": "string",
-  "summary": "string",
+  "summary": "string (3-4 sentences)",
   "experiences": [
     {
       "company": "string",
       "role": "string",
-      "startDate": "Month YYYY format",
-      "endDate": "Month YYYY format or null",
+      "startDate": "Month YYYY",
+      "endDate": "Month YYYY or null",
       "bullets": ["string", "string", "string"]
     }
   ],
@@ -66,12 +69,18 @@ STRICT INSTRUCTIONS:
       "institution": "string",
       "degree": "string",
       "field": "string",
-      "startDate": "Month YYYY format",
-      "endDate": "Month YYYY format or null"
+      "startDate": "Month YYYY",
+      "endDate": "Month YYYY or null"
     }
   ],
   "hardSkills": ["string"],
   "softSkills": ["string"]
 }
-`
+`;
+
+  return buildSecurePrompt(
+    systemInstructions,
+    sanitizeUserInput(jobDescription),
+    profileData
+  );
 }

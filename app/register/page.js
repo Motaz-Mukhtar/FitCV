@@ -11,14 +11,55 @@ import Link from 'next/link'
 export default function RegisterPage() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [confirmPassword, setConfirmPassword] = useState('')
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState('')
   const { setUser } = useStore()
   const router = useRouter()
 
-  const handleMockRegister = (e) => {
+  const handleRegister = async (e) => {
     e.preventDefault()
-    // Mock user for Day 5 testing
-    setUser({ id: '00000000-0000-0000-0000-000000000001', email: email || 'test@fitcv.com' })
-    router.push('/dashboard')
+    setLoading(true)
+    setError('')
+
+    // Client-side validation
+    if (password !== confirmPassword) {
+      setError('Passwords do not match')
+      setLoading(false)
+      return
+    }
+
+    if (password.length < 8) {
+      setError('Password must be at least 8 characters long')
+      setLoading(false)
+      return
+    }
+
+    try {
+      const response = await fetch('/api/v1/auth/register', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email, password }),
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Registration failed')
+      }
+
+      // Set user in store
+      setUser(data.user)
+      
+      // Redirect to dashboard
+      router.push('/dashboard')
+    } catch (err) {
+      setError(err.message)
+    } finally {
+      setLoading(false)
+    }
   }
 
   return (
@@ -32,7 +73,13 @@ export default function RegisterPage() {
             <p className="text-sapphire font-medium">Join FitCV and start tailoring your CV</p>
           </div>
 
-          <form onSubmit={handleMockRegister} className="space-y-6">
+          {error && (
+            <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-xl">
+              <p className="text-red-600 text-sm font-medium">{error}</p>
+            </div>
+          )}
+
+          <form onSubmit={handleRegister} className="space-y-6">
             <div>
               <label className="block text-xs font-black text-sapphire/40 uppercase tracking-widest mb-2">Email Address</label>
               <input 
@@ -41,6 +88,8 @@ export default function RegisterPage() {
                 className="w-full px-5 py-3 rounded-xl border border-powder-blue outline-none focus:ring-2 focus:ring-sapphire focus:border-transparent transition-all font-medium"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
+                required
+                disabled={loading}
               />
             </div>
             <div>
@@ -51,11 +100,32 @@ export default function RegisterPage() {
                 className="w-full px-5 py-3 rounded-xl border border-powder-blue outline-none focus:ring-2 focus:ring-sapphire focus:border-transparent transition-all font-medium"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
+                required
+                disabled={loading}
+                minLength={8}
+              />
+              <p className="text-xs text-sapphire/60 mt-1">Must be at least 8 characters</p>
+            </div>
+            <div>
+              <label className="block text-xs font-black text-sapphire/40 uppercase tracking-widest mb-2">Confirm Password</label>
+              <input 
+                type="password" 
+                placeholder="••••••••"
+                className="w-full px-5 py-3 rounded-xl border border-powder-blue outline-none focus:ring-2 focus:ring-sapphire focus:border-transparent transition-all font-medium"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                required
+                disabled={loading}
               />
             </div>
 
-            <Button type="submit" size="lg" className="w-full rounded-xl py-4 shadow-xl shadow-sapphire/20">
-              Create Account
+            <Button 
+              type="submit" 
+              size="lg" 
+              className="w-full rounded-xl py-4 shadow-xl shadow-sapphire/20"
+              disabled={loading}
+            >
+              {loading ? 'Creating Account...' : 'Create Account'}
             </Button>
             
             <div className="relative py-4">
