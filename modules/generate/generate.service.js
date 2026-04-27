@@ -23,7 +23,6 @@ export class GenerateService {
 
         // Exponential backoff: 1s, 2s, 4s
         const delay = baseDelay * Math.pow(2, attempt);
-        console.log(`Retry attempt ${attempt + 1}/${maxRetries} after ${delay}ms...`);
         await new Promise(resolve => setTimeout(resolve, delay));
       }
     }
@@ -39,7 +38,9 @@ export class GenerateService {
       });
 
       const response = await result.response;
-      const text = response.text();
+
+      // In case it's coming from the AI model at the server not gemini
+      const text = typeof response === 'string' ? response : response.text();
       
       // Validate response for security issues
       if (!validateAIResponse(text, delimiters)) {
