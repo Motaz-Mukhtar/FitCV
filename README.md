@@ -82,7 +82,7 @@ FitCV is built with a distributed architecture designed for scalability and perf
 │                 │    │                 │    │                 │
 │     User's      │    │   FitCV Web     │    │    AI Model     │
 │    Browser      │◄──►│  Application    │◄──►│     Server      │
-│                 │    │ (EC2 t2.medium) │    │ (EC2 c5.xlarge) │
+│                 │    │ (EC2 t2.medium) │    │(EC2 r7i.2xlarge)│
 │                 │    │                 │    │                 │
 └─────────────────┘    └─────────────────┘    └─────────────────┘
                                 │                        
@@ -121,7 +121,7 @@ FitCV is built with a distributed architecture designed for scalability and perf
   - Job description analysis
 - **Model**: Qwen-2.5-7B-Instruct (or similar open-source model)
 - **Specifications**:
-  - Instance Type: c5.xlarge (4 vCPU, 8GB RAM, 1 GPU)
+  - Instance Type: r7i.2xlarge (4 vCPU, 8GB RAM, 1 GPU)
   - Operating System: Ubuntu 24.04 LTS with CUDA support
 
 #### 3. **Database Layer (Amazon RDS)**
