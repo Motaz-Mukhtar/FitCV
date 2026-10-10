@@ -28,13 +28,7 @@ class FitCVModel {
 
     async isEnabled() {
         try {
-            console.log("Here")
-
             const result = await axios(`${this.MODEL_API}/api/version`);
-
-            console.log("Response")
-            console.log(result.data);
-            console.log("Response")
 
             if (result.data.version) return true
 

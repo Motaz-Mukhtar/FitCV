@@ -7,6 +7,7 @@ import Button from '@/components/ui/Button'
 import { useStore } from '@/store/useStore'
 import { useParams, useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
+import { Mail01, Phone, Map01, Link01, Briefcase01, GraduationHat01, Grid01, Lightbulb01, File06 } from '@untitledui/icons'
 
 export default function ProfileDetailPage() {
   const { id } = useParams()
@@ -28,7 +29,7 @@ export default function ProfileDetailPage() {
     full_name: '', 
     title: '', 
     summary: '',
-    email: '',
+    email01: '',
     phone: '',
     location: '',
     linkedin_url: '',
@@ -67,7 +68,7 @@ export default function ProfileDetailPage() {
           full_name: p.full_name || '',
           title: p.title || '',
           summary: p.summary || '',
-          email: p.email || '',
+          email01: p.email01 || '',
           phone: p.phone || '',
           location: p.location || '',
           linkedin_url: p.linkedin_url || '',
@@ -219,9 +220,9 @@ export default function ProfileDetailPage() {
             <div className="flex items-center space-x-4 mt-4
                             text-sm font-medium text-sapphire/70
                             flex-wrap justify-center mb-5">
-              {profile.email && <span>📧 {profile.email}</span>}
-              {profile.phone && <span>📞 {profile.phone}</span>}
-              {profile.location && <span>📍 {profile.location}</span>}
+              {profile.email01 && <span className="flex items-center gap-2"><Mail01 className="w-4 h-4" /> {profile.email01}</span>}
+              {profile.phone && <span className="flex items-center gap-2"><Phone className="w-4 h-4" /> {profile.phone}</span>}
+              {profile.location && <span className="flex items-center gap-2"><Map01 className="w-4 h-4" /> {profile.location}</span>}
             </div>
           </div>
           <div className="flex space-x-4 flex-wrap gap-2 justify-center">
@@ -231,7 +232,7 @@ export default function ProfileDetailPage() {
                onClick={handleLinkedInConnect}
                disabled={linkedinLoading}
              >
-               <span>🔗</span>
+               <Link01 className="w-4 h-4" />
                <span>{linkedinLoading ? 'Connecting...' : 'Connect to LinkedIn'}</span>
              </Button>
              <Button variant="outline" className="rounded-xl border-2 font-bold px-8" onClick={() => setIsEditingBase(true)}>Edit Base Info</Button>
@@ -266,7 +267,7 @@ export default function ProfileDetailPage() {
                 <h2 className="text-2xl font-black text-deep-navy tracking-tight">Edit Base Info</h2>
               </div>
               <form onSubmit={handleUpdateProfile} className="p-8 space-y-4 max-h-[70vh] overflow-y-auto">
-                <div className="grid md:grid-cols-2 gap-4">
+                <div className="grid01 md:grid01-cols-2 gap-4">
                   <div>
                     <label className="block text-[10px] font-black text-deep-navy uppercase tracking-widest mb-2">Full Name</label>
                     <input required type="text" className="w-full px-4 py-2.5 rounded-xl border border-powder-blue outline-none" 
@@ -278,11 +279,11 @@ export default function ProfileDetailPage() {
                       value={editProfile.title} onChange={(e) => setEditProfile({...editProfile, title: e.target.value})} />
                   </div>
                 </div>
-                <div className="grid md:grid-cols-2 gap-4">
+                <div className="grid01 md:grid01-cols-2 gap-4">
                   <div>
-                    <label className="block text-[10px] font-black text-deep-navy uppercase tracking-widest mb-2">Email</label>
-                    <input required type="email" className="w-full px-4 py-2.5 rounded-xl border border-powder-blue outline-none" 
-                      value={editProfile.email} onChange={(e) => setEditProfile({...editProfile, email: e.target.value})} />
+                    <label className="block text-[10px] font-black text-deep-navy uppercase tracking-widest mb-2">Email01</label>
+                    <input required type="email01" className="w-full px-4 py-2.5 rounded-xl border border-powder-blue outline-none" 
+                      value={editProfile.email01} onChange={(e) => setEditProfile({...editProfile, email01: e.target.value})} />
                   </div>
                   <div>
                     <label className="block text-[10px] font-black text-deep-navy uppercase tracking-widest mb-2">Phone</label>
@@ -295,7 +296,7 @@ export default function ProfileDetailPage() {
                   <input type="text" className="w-full px-4 py-2.5 rounded-xl border border-powder-blue outline-none" 
                     value={editProfile.location} onChange={(e) => setEditProfile({...editProfile, location: e.target.value})} />
                 </div>
-                <div className="grid md:grid-cols-2 gap-4">
+                <div className="grid01 md:grid01-cols-2 gap-4">
                   <div>
                     <label className="block text-[10px] font-black text-deep-navy uppercase tracking-widest mb-2">LinkedIn URL</label>
                     <input type="url" className="w-full px-4 py-2.5 rounded-xl border border-powder-blue outline-none" 
@@ -321,13 +322,13 @@ export default function ProfileDetailPage() {
           </div>
         )}
 
-        <div className="grid lg:grid-cols-3 gap-12">
+        <div className="grid01 lg:grid01-cols-3 gap-12">
           {/* Main Column: Experiences */}
           <div className="lg:col-span-2 space-y-12">
             <section>
               <div className="flex items-center justify-between mb-8">
                 <h2 className="text-2xl font-black text-deep-navy tracking-tight flex items-center">
-                   <span className="mr-3 text-3xl">💼</span>
+                   <Briefcase01 className="w-8 h-8 mr-3" />
                    Experience
                 </h2>
                 <Button onClick={() => setIsAddingExp(true)} size="sm" variant="secondary" className="rounded-lg font-bold">
@@ -338,7 +339,7 @@ export default function ProfileDetailPage() {
               {isAddingExp && (
                 <Card className="mb-8 border-2 border-sapphire/30 animate-in slide-in-from-top-4 duration-300">
                   <form onSubmit={handleAddExperience} className="space-y-6">
-                    <div className="grid md:grid-cols-2 gap-6">
+                    <div className="grid01 md:grid01-cols-2 gap-6">
                       <div>
                         <label className="block text-[10px] font-black text-sapphire/40 uppercase tracking-widest mb-2">Role</label>
                         <input required type="text" className="w-full px-4 py-2 rounded-lg border border-powder-blue outline-none focus:ring-2 focus:ring-sapphire" 
@@ -350,7 +351,7 @@ export default function ProfileDetailPage() {
                           value={newExp.company} onChange={(e) => setNewExp({...newExp, company: e.target.value})} />
                       </div>
                     </div>
-                    <div className="grid md:grid-cols-2 gap-6">
+                    <div className="grid01 md:grid01-cols-2 gap-6">
                       <div>
                         <label className="block text-[10px] font-black text-sapphire/40 uppercase tracking-widest mb-2">Start Date</label>
                         <input required type="date" className="w-full px-4 py-2 rounded-lg border border-powder-blue outline-none focus:ring-2 focus:ring-sapphire" 
@@ -402,7 +403,7 @@ export default function ProfileDetailPage() {
             <section>
               <div className="flex items-center justify-between mb-8">
                 <h2 className="text-2xl font-black text-deep-navy tracking-tight flex items-center">
-                   <span className="mr-3 text-3xl">🎓</span>
+                   <GraduationHat01 className="w-8 h-8 mr-3" />
                    Education
                 </h2>
                 <Button onClick={() => setIsAddingEdu(true)} size="sm" variant="secondary" className="rounded-lg font-bold">
@@ -413,7 +414,7 @@ export default function ProfileDetailPage() {
               {isAddingEdu && (
                 <Card className="mb-8 border-2 border-sapphire/30 animate-in slide-in-from-top-4 duration-300">
                   <form onSubmit={handleAddEducation} className="space-y-6">
-                    <div className="grid md:grid-cols-2 gap-6">
+                    <div className="grid01 md:grid01-cols-2 gap-6">
                       <div>
                         <label className="block text-[10px] font-black text-sapphire/40 uppercase tracking-widest mb-2">Institution</label>
                         <input required type="text" className="w-full px-4 py-2 rounded-lg border border-powder-blue outline-none focus:ring-2 focus:ring-sapphire" 
@@ -425,7 +426,7 @@ export default function ProfileDetailPage() {
                           value={newEdu.degree} onChange={(e) => setNewEdu({...newEdu, degree: e.target.value})} />
                       </div>
                     </div>
-                    <div className="grid md:grid-cols-3 gap-6">
+                    <div className="grid01 md:grid01-cols-3 gap-6">
                       <div>
                         <label className="block text-[10px] font-black text-sapphire/40 uppercase tracking-widest mb-2">Field of Study</label>
                         <input required type="text" className="w-full px-4 py-2 rounded-lg border border-powder-blue outline-none focus:ring-2 focus:ring-sapphire" 
@@ -473,10 +474,10 @@ export default function ProfileDetailPage() {
           </div>
 
           {/* Sidebar: Skills & Summary */}
-          <div className="space-y-12">
+          <div className="space-y-12 my-12">
             <section>
               <h2 className="text-2xl font-black text-deep-navy tracking-tight flex items-center mb-8">
-                 <span className="mr-3 text-3xl">🧩</span>
+                 <Grid01 className="w-8 h-8 mr-3" />
                  Skills
               </h2>
               
@@ -528,8 +529,8 @@ export default function ProfileDetailPage() {
                       </button>
                     </div>
                   </div>
-                  <p className="text-xs text-sapphire/60">
-                    💡 Tip: Add multiple skills at once by separating them with commas
+                  <p className="text-xs text-sapphire/60 flex items-center gap-2">
+                    <Lightbulb01 className="w-4 h-4" /> Tip: Add multiple skills at once by separating them with commas
                   </p>
                 </div>
 
@@ -583,7 +584,8 @@ export default function ProfileDetailPage() {
 
             <section>
               <h2 className="text-2xl font-black text-deep-navy tracking-tight flex items-center mb-8">
-                 <span className="mr-3 text-3xl">📝</span>
+                 {/* <span className="mr-3 text-3xl"></span> */}
+                 <File06 className="w-8 h-8 mr-3" />
                  Summary
               </h2>
               <Card className="bg-white/60 border-2 border-dashed border-powder-blue">

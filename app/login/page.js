@@ -2,11 +2,11 @@
 
 import { useState } from 'react'
 import Navbar from '@/components/Navbar'
-import Card from '@/components/ui/Card'
 import Button from '@/components/ui/Button'
 import { useStore } from '@/store/useStore'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+import { Mail01, Lock01, ArrowRight } from '@untitledui/icons'
 
 export default function LoginPage() {
   const [email, setEmail] = useState('')
@@ -49,71 +49,112 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen bg-ice-blue flex flex-col">
+    <div className="min-h-screen bg-gradient-to-br from-ice-blue via-white to-powder-blue/30 flex flex-col">
       <Navbar />
       
-      <main className="flex-1 flex items-center justify-center p-6">
-        <Card className="w-full max-w-md shadow-2xl rounded-3xl p-10 border-none bg-white/80 backdrop-blur-md">
-          <div className="text-center mb-10">
-            <h1 className="text-3xl font-black text-deep-navy tracking-tight mb-2">Welcome Back</h1>
-            <p className="text-sapphire font-medium">Log in to your FitCV account</p>
+      <main className="flex-1 flex items-center justify-center p-6 py-16">
+        {/* Document Container */}
+        <div className="w-full max-w-2xl">
+          {/* Paper Document */}
+          <div className="bg-white shadow-2xl relative">
+            {/* Document Header - Letterhead Style */}
+            <div className="border-b-4 border-sapphire bg-gradient-to-r from-sapphire/5 to-transparent px-12 py-8">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h1 className="text-4xl font-black text-deep-navy tracking-tight mb-1">FitCV</h1>
+                  <p className="text-xs font-bold text-sapphire uppercase tracking-widest">CV Generation Platform</p>
+                </div>
+                <div className="w-16 h-16 bg-sapphire/10 rounded-full flex items-center justify-center">
+                  <div className="w-12 h-12 bg-sapphire/20 rounded-full flex items-center justify-center">
+                    <Lock01 className="w-6 h-6 text-sapphire" />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Document Body */}
+            <div className="px-12 py-10">
+              {/* Document Title */}
+              <div className="mb-8">
+                <div className="flex items-baseline space-x-3 mb-2">
+                  <h2 className="text-2xl font-black text-deep-navy tracking-tight">Access Request</h2>
+                  <span className="text-xs font-bold text-sapphire/40 uppercase tracking-widest">Form 001</span>
+                </div>
+                <div className="h-1 w-24 bg-sapphire"></div>
+              </div>
+
+              {error && (
+                <div className="mb-6 p-4 bg-red-50 border-l-4 border-red-500">
+                  <p className="text-red-700 text-sm font-semibold">{error}</p>
+                </div>
+              )}
+
+              <form onSubmit={handleLogin} className="space-y-8">
+                {/* Email Field - Document Style */}
+                <div className="border-b-2 border-dotted border-powder-blue pb-6">
+                  <label className="block text-xs font-black text-deep-navy/60 uppercase tracking-widest mb-3 flex items-center space-x-2">
+                    <Mail01 className="w-4 h-4" />
+                    <span>Email Address</span>
+                  </label>
+                  <input 
+                    type="email" 
+                    placeholder="Enter your email"
+                    className="w-full text-lg font-semibold text-deep-navy bg-transparent border-none outline-none placeholder:text-deep-navy/30 placeholder:font-normal"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    required
+                    disabled={loading}
+                  />
+                </div>
+
+                {/* Password Field - Document Style */}
+                <div className="border-b-2 border-dotted border-powder-blue pb-6">
+                  <label className="block text-xs font-black text-deep-navy/60 uppercase tracking-widest mb-3 flex items-center space-x-2">
+                    <Lock01 className="w-4 h-4" />
+                    <span>Password</span>
+                  </label>
+                  <input 
+                    type="password" 
+                    placeholder="Enter your password"
+                    className="w-full text-lg font-semibold text-deep-navy bg-transparent border-none outline-none placeholder:text-deep-navy/30 placeholder:font-normal"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    required
+                    disabled={loading}
+                  />
+                </div>
+
+                {/* Document Footer Actions */}
+                <div className="pt-6 space-y-6">
+                  <Button 
+                    type="submit" 
+                    size="lg" 
+                    className="w-full py-4 text-base font-bold shadow-lg flex items-center justify-center space-x-2 group"
+                    disabled={loading}
+                  >
+                    <span>{loading ? 'Verifying credentials...' : 'Submit Access Request'}</span>
+                    <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                  </Button>
+
+                  <div className="flex items-center justify-center space-x-2 text-sm">
+                    <span className="text-deep-navy/60 font-medium">Need an account?</span>
+                    <Link href="/register" className="font-black text-sapphire hover:text-deep-navy transition-colors underline">
+                      Register New Account
+                    </Link>
+                  </div>
+                </div>
+              </form>
+            </div>
+
+            {/* Document Footer - Reference Number */}
+            <div className="border-t border-ice-blue bg-ice-blue/20 px-12 py-4">
+              <div className="flex items-center justify-between text-xs text-deep-navy/40">
+                <span className="font-bold uppercase tracking-widest">Confidential Access Form</span>
+                <span className="font-mono">REF: {new Date().getFullYear()}-LOGIN</span>
+              </div>
+            </div>
           </div>
-
-          {error && (
-            <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-xl">
-              <p className="text-red-600 text-sm font-medium">{error}</p>
-            </div>
-          )}
-
-          <form onSubmit={handleLogin} className="space-y-6">
-            <div>
-              <label className="block text-xs font-black text-sapphire/40 uppercase tracking-widest mb-2">Email Address</label>
-              <input 
-                type="email" 
-                placeholder="you@example.com"
-                className="w-full px-5 py-3 rounded-xl border border-powder-blue outline-none focus:ring-2 focus:ring-sapphire focus:border-transparent transition-all font-medium"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-                disabled={loading}
-              />
-            </div>
-            <div>
-              <label className="block text-xs font-black text-sapphire/40 uppercase tracking-widest mb-2">Password</label>
-              <input 
-                type="password" 
-                placeholder="••••••••"
-                className="w-full px-5 py-3 rounded-xl border border-powder-blue outline-none focus:ring-2 focus:ring-sapphire focus:border-transparent transition-all font-medium"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-                disabled={loading}
-              />
-            </div>
-
-            <Button 
-              type="submit" 
-              size="lg" 
-              className="w-full rounded-xl py-4 shadow-xl shadow-sapphire/20"
-              disabled={loading}
-            >
-              {loading ? 'Logging in...' : 'Log In'}
-            </Button>
-            
-            <div className="relative py-4">
-              <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-ice-blue"></div>
-              </div>
-              <div className="relative flex justify-center text-xs uppercase tracking-widest font-black text-sapphire/40">
-                <span className="bg-white px-4 rounded-full">Or</span>
-              </div>
-            </div>
-
-            <p className="text-center text-sm font-medium text-sapphire">
-              Don't have an account? <Link href="/register" className="font-black hover:underline">Register</Link>
-            </p>
-          </form>
-        </Card>
+        </div>
       </main>
     </div>
   )

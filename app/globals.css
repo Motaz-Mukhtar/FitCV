@@ -43,6 +43,15 @@ body {
   }
 }
 
+@keyframes bounce-slow {
+  0%, 100% {
+    transform: translateY(0) rotate(12deg);
+  }
+  50% {
+    transform: translateY(-10px) rotate(12deg);
+  }
+}
+
 .animate-fade-in {
   animation: fade-in 0.6s ease-out;
 }
@@ -54,4 +63,8 @@ body {
 .animate-slide-up {
   animation: slide-up 0.6s ease-out forwards;
   opacity: 0;
+}
+
+.animate-bounce-slow {
+  animation: bounce-slow 3s ease-in-out infinite;
 }
