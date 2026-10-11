@@ -202,8 +202,9 @@ export default function DashboardPage() {
                             </span>
                             {sub.documents.map((doc) => {
                               const DocIcon = getDocIcon(doc.type);
+                              console.log(sub)
                               return (
-                                <Link key={doc.id} href={`/generate/${sub.id}?type=${doc.type}`}>
+                                <Link key={doc.id} href={`/generate/${sub.documents[0].id}?type=${doc.type}`}>
                                   <div className="flex items-center space-x-2 px-3 py-1.5 bg-ice-blue/30 hover:bg-sapphire/10 border border-powder-blue/50 hover:border-sapphire/30 transition-all cursor-pointer group/doc">
                                     <DocIcon className="w-4 h-4 text-sapphire group-hover/doc:scale-110 transition-transform" />
                                     <span className="text-xs font-bold text-deep-navy uppercase tracking-wider">
